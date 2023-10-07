@@ -1,0 +1,13 @@
+
+{
+  "type": "mysql",
+  "host": "localhost",
+  "port": 3306,
+  "username": "root",
+  "password": "Abc11223344",
+  "database": "test",
+  "entities": [
+    "./src/entities/link.entity.ts"
+  ]
+  
+}
