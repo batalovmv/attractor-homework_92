@@ -34,6 +34,9 @@ export class UserController {
 
     if (!isPasswordMatch) throw new HttpError(401, "Unauthorized");
 
+    user.token = nanoid();
+    await UserRepository.save(user);
+
     return { token: user.token };
   }
 }

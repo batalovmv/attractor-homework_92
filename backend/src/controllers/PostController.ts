@@ -1,4 +1,4 @@
-import { Authorized, Body, CurrentUser, Delete, HttpError, JsonController, Param, Post, Req, UseBefore } from "routing-controllers";
+import { Authorized, Body, CurrentUser, Delete, Get, HttpError, JsonController, Param, Post, Req, Res, UseBefore } from "routing-controllers";
 import { CreatePostDto } from "../dto/createPostDto";
 import { UserRepository } from "../repositories/user.repository";
 import { PostRepository } from "../repositories/post.repository";
@@ -8,6 +8,37 @@ import { User } from "../entities/user.entity";
 
 @JsonController('/posts')
 export class PostController {
+
+  @Get('/')
+  async getAllPosts() {
+    const posts = await PostRepository.createQueryBuilder("post")
+      .leftJoinAndSelect("post.user", "user")
+      .leftJoin("post.comments", "comments")
+      .select([
+        "post",
+        "user.id",
+        "user.username",
+        "COUNT(comments.id) AS commentCount"
+      ])
+      .groupBy("post.id")
+      .addGroupBy("user.id")
+      .addGroupBy("user.username")
+      .orderBy("post.datetime", "DESC")
+      .getRawMany();
+
+    return posts.map(post => ({
+      id: post.post_id,
+      title: post.post_title,
+      description: post.post_description,
+      image: post.post_image,
+      datetime: post.post_datetime,
+      user: {
+        id: post.user_id,
+        username: post.user_username,
+      },
+      commentCount: post.commentCount
+    }));
+  }
 
   @Post('/')
   @UseBefore(MulterUpload)
@@ -31,8 +62,8 @@ export class PostController {
   }
 
   @Delete('/:id')
-  @Authorized() // Только аутентифицированные пользователи могут удалять посты
-  async delete(@Param('id') postId: number, @CurrentUser({ required: true }) user: User) {
+  @Authorized() 
+  async delete(@Param('id') postId: number, @CurrentUser({ required: true }) user: User, @Res() response: any) {
     if (!user) throw new HttpError(401, "Unauthorized");
 
     const post = await PostRepository.findOne({ where: { id: postId }, relations: ["user"] });
@@ -40,5 +71,7 @@ export class PostController {
     if (post.user.id !== user.id) throw new HttpError(403, "Forbidden");
 
     await PostRepository.remove(post);
+
+    return response.status(200).send({ message: "Post successfully deleted" });
   }
 }

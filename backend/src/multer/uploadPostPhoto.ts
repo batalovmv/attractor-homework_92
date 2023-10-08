@@ -1,7 +1,7 @@
 import { ExpressMiddlewareInterface } from 'routing-controllers';
 import multer from 'multer';
 const path = require('path');
-const uploadsDir = path.join(__dirname, '../uploads/post_photos');
+const uploadsDir = path.resolve(__dirname, '../uploads/post_photos');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
