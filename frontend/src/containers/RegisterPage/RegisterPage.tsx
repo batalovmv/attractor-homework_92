@@ -51,22 +51,17 @@ const RegisterPage = () => {
             setOpenSnackbar(true);
             return;
         }
-
         const passwordErrors: string[] = [];
-
         if (state.password.length < 8) {
             passwordErrors.push("Пароль слишком короткий. Минимальная длина — 8 символов.");
         }
-
         if (state.password.length > 32) {
             passwordErrors.push("Пароль слишком длинный. Максимальная длина — 32 символа.");
         }
-
         if (!/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/.test(state.password)) {
             passwordErrors.push(
                 "Пароль должен содержать хотя бы одну заглавную букву, одну строчную букву, одну цифру или специальный символ.");
         }
-
         setState((prevState) => ({
             ...prevState,
             passwordErrors: passwordErrors,
