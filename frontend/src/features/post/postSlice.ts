@@ -1,6 +1,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { IPost } from "../../interfaces/IPost";
 import axiosInstance from "../../Api/axiosInstance";
+import { RootState } from "../../store";
+import { isAxiosError } from "axios";
 
 interface State {
   posts: IPost[];
@@ -24,8 +26,6 @@ export const fetchPosts = createAsyncThunk(
   }
 );
 
-
-
 export const createPost = createAsyncThunk(
   "create/post",
 
@@ -36,13 +36,31 @@ export const createPost = createAsyncThunk(
   }
 );
 
-export const deletePost = createAsyncThunk(
-  "delete/post",
-  async (id: number) => {
-    await axiosInstance.delete(`/posts/${id} `);
-    return id;
+export const deletePost = createAsyncThunk<
+  number,
+  number,
+  {
+    state: RootState;
   }
-);
+>("delete/post", async (id, thunkAPI) => {
+  try {
+    const token = thunkAPI.getState().user.userInfo?.token;
+    const response = await axiosInstance.delete(`/posts/${id} `, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    if (isAxiosError(error)) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || "An error occured"
+      );
+    } else {
+      return thunkAPI.rejectWithValue("An error occured");
+    }
+  }
+});
 
 const PostSlice = createSlice({
   name: "post",
