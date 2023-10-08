@@ -19,7 +19,6 @@ function App() {
             <Route path="/posts/:id" element={<PostDetailsPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/posts/:id" element={<PostDetailsPage />} />
           </Routes>
         </Container>
       </main>
