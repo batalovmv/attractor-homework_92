@@ -1,5 +1,7 @@
-import { AppBar, Box, Grid, Toolbar, Typography, styled } from "@mui/material";
+import { AppBar, Box, Button, Grid, Toolbar, Typography, styled } from "@mui/material";
 import { Link } from "react-router-dom";
+import UserMenu from "../Menu/UserMenu";
+import { useAppSelector } from "../../../store/hooks";
 
 const StyledLink = styled(Link)(() => ({
   color: "blue",
@@ -8,6 +10,7 @@ const StyledLink = styled(Link)(() => ({
 }));
 
 const AppToolbar = () => {
+  const user = useAppSelector((state) => state.user.userInfo);
   return (
     <>
       <AppBar position="fixed">
@@ -16,6 +19,19 @@ const AppToolbar = () => {
             <Typography variant="h6" component={StyledLink} to={"/"}>
               Forum App
             </Typography>
+            {user ? (
+              <UserMenu username={user.displayName ?? user.username} />
+            ) : (
+              <Grid item>
+                <Button component={Link} to={"/register"}>
+                  Register
+                </Button>
+                or
+                <Button component={Link} to={"/login"}>
+                  Login
+                </Button>
+              </Grid>
+            )}
           </Grid>
         </Toolbar>
       </AppBar>
