@@ -11,6 +11,7 @@ interface Props {
     multiline?: boolean;
     autoFocus?: boolean;
     required?: boolean;
+    helperText?: string;
 }
 
 const FormElement = ({
@@ -23,24 +24,25 @@ const FormElement = ({
     type,
     autoFocus,
     required,
-    }: Props) => {
-        return (
-            <TextField
-                margin="normal"
-                fullWidth
-                id={name}
-                label={label}
-                name={name}
-                autoComplete={name}
-                autoFocus={autoFocus}
-                value={value}
-                onChange={onChange}
-                error={!!error}
-                helperText={error}
-                type={type}
-                multiline={multiline}
-                required={required}
-                />
+    helperText,
+}: Props) => {
+    return (
+        <TextField
+            margin="normal"
+            fullWidth
+            id={name}
+            label={label}
+            name={name}
+            autoComplete={name}
+            autoFocus={autoFocus}
+            value={value}
+            onChange={onChange}
+            error={!!error}
+            helperText={helperText}
+            type={type}
+            multiline={multiline}
+            required={required}
+        />
     );
 };
 
