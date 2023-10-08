@@ -28,10 +28,10 @@ export const registerUser = createAsyncThunk<
     IUser,
     userRequest,
     { rejectValue: userResponseError | userResponseValidateError }
->("auth/register", async (userData, { rejectWithValue }) => {
+>("users/register", async (userData, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.post<IUser>(
-            "/auth/register",
+            "/users/register",
             userData
         );
         console.log("Регистрация выполнена успешно");
@@ -47,6 +47,27 @@ export const registerUser = createAsyncThunk<
         throw err;
     }
 });
+
+export const loginUser = createAsyncThunk<
+    IUser,
+    userRequest,
+    { rejectValue: string }
+>("auth.login", async (userData, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post<IUser>("/users/login", userData);
+        return response.data;
+    } catch (err) {
+        if (isAxiosError(err)) {
+            const error: AxiosError<userResponseError> = err;
+            return rejectWithValue(
+                error.response?.data.error.message || "Internet connection error"
+            );
+        }
+        throw err;
+    }
+});
+
+
 
 
 const initialState: userState = {
@@ -79,7 +100,21 @@ const userSlice = createSlice({
                     state.registerError =
                         action.payload?.error.message ?? "Error occurred";
                 }
+            })
+            .addCase(loginUser.pending, (state) => {
+                state.loading = true;
+                state.loginError = null;
+            })
+            .addCase(loginUser.fulfilled, (state, action) => {
+                state.loading = false;
+                state.loginError = null;
+                state.userInfo = action.payload;
+            })
+            .addCase(loginUser.rejected, (state, action) => {
+                state.loading = false;
+                state.loginError = action.payload || null;
             });
+            
            
     },
 });
