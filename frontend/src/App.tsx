@@ -6,6 +6,7 @@ import RegisterPage from "./containers/RegisterPage/RegisterPage";
 import PostsPage from "./containers/post/PostsPage";
 import PostDetailsPage from "./containers/post/PostDetailsPage";
 
+
 function App() {
   return (
     <>
