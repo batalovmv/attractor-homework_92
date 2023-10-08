@@ -15,7 +15,7 @@ interface RegisterState {
     displayName: string;
     password: string;
     passwordErrors: string[];
-    passwordErrors: string[];
+   
 }
 
 const RegisterPage = () => {
@@ -46,7 +46,7 @@ const RegisterPage = () => {
         setState((prevState) => ({ ...prevState, [name]: value }));
     };
 
-    const submitFormHandler = (e: FormEvent) => {
+    
     const submitFormHandler = (e: FormEvent) => {
         e.preventDefault();
         if (state.username.trim() === "" || state.password.trim() === "") {
