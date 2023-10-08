@@ -1,4 +1,4 @@
-import { Authorized, Body, CurrentUser, Delete, HttpError, JsonController, Param, Post, Req, Res, UseBefore } from "routing-controllers";
+import { Authorized, Body, CurrentUser, Delete, Get, HttpError, JsonController, Param, Post, Req, Res, UseBefore } from "routing-controllers";
 import { CreatePostDto } from "../dto/createPostDto";
 import { UserRepository } from "../repositories/user.repository";
 import { PostRepository } from "../repositories/post.repository";
@@ -8,6 +8,17 @@ import { User } from "../entities/user.entity";
 
 @JsonController('/posts')
 export class PostController {
+
+  @Get('/')
+  async getAllPosts() {
+    const posts = await PostRepository.find({
+      order: {
+        datetime: "DESC" 
+      },
+      relations: ["user", "comments"]
+    });
+    return posts;
+  }
 
   @Post('/')
   @UseBefore(MulterUpload)
