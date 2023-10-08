@@ -14,13 +14,30 @@ export class PostController {
     const posts = await PostRepository.createQueryBuilder("post")
       .leftJoinAndSelect("post.user", "user")
       .leftJoin("post.comments", "comments")
-      .addSelect("COUNT(comments.id)", "post.commentCount")
+      .select([
+        "post",
+        "user.id",
+        "user.username",
+        "COUNT(comments.id) AS commentCount"
+      ])
       .groupBy("post.id")
       .addGroupBy("user.id")
+      .addGroupBy("user.username")
       .orderBy("post.datetime", "DESC")
-      .getMany();
+      .getRawMany();
 
-    return posts;
+    return posts.map(post => ({
+      id: post.post_id,
+      title: post.post_title,
+      description: post.post_description,
+      image: post.post_image,
+      datetime: post.post_datetime,
+      user: {
+        id: post.user_id,
+        username: post.user_username,
+      },
+      commentCount: post.commentCount
+    }));
   }
 
   @Post('/')
