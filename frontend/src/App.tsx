@@ -11,6 +11,7 @@ import LoginPage from "./containers/LoginPage/LoginPage";
 >>>>>>> c2d4b97 (Пользователь может успешно войти в систему.)
 
 import PostsPage from "./containers/post/PostsPage";
+import PostDetailsPage from "./containers/post/PostDetailsPage";
 
 function App() {
   return (
