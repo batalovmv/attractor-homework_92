@@ -1,6 +1,5 @@
 import { Authorized, Body, CurrentUser, Delete, Get, HttpError, JsonController, Param, Post, Req, Res } from "routing-controllers";
 import { CreateBlogCommentDto } from "../dto/createBlogCommentDto";
-import { UserRepository } from "../repositories/user.repository";
 import { PostRepository } from "../repositories/post.repository";
 import { CommentRepository } from "../repositories/blogComment.repository";
 import { User } from "../entities/user.entity";

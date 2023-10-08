@@ -11,12 +11,15 @@ export class PostController {
 
   @Get('/')
   async getAllPosts() {
-    const posts = await PostRepository.find({
-      order: {
-        datetime: "DESC" 
-      },
-      relations: ["user", "comments"]
-    });
+    const posts = await PostRepository.createQueryBuilder("post")
+      .leftJoinAndSelect("post.user", "user")
+      .leftJoin("post.comments", "comments")
+      .addSelect("COUNT(comments.id)", "post.commentCount")
+      .groupBy("post.id")
+      .addGroupBy("user.id")
+      .orderBy("post.datetime", "DESC")
+      .getMany();
+
     return posts;
   }
 
