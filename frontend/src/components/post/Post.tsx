@@ -29,45 +29,51 @@ const Post = ({ post, onDelete }: Props) => {
   let cardImage: string | undefined = undefined;
 
   if (post.image) {
-    cardImage = apiURL + "/uploads/" + post.image;
+    cardImage = apiURL + "/uploads/post_photos/" + post.image;
   }
 
   return (
-    <Card elevation={10}>
-      <Box display={"flex"} gap={1}>
-        {cardImage ? (
-          <CardMedia
-            sx={{ height: 200 }}
-            component="img"
-            alt={post.title}
-            src={cardImage}
-          />
-        ) : (
-          <Box sx={{ padding: 5, border: "1px solid #ccc" }}>
-            <Typography variant="h6">Not image</Typography>
+    <Box mb={4}>
+      <Card elevation={1} sx={{ width: "100%" }}>
+        <Box display={"flex"} gap={1}>
+          {cardImage ? (
+            <CardMedia
+              sx={{ height: 200, width: 200 }}
+              component="img"
+              alt={post.title}
+              src={cardImage}
+            />
+          ) : (
+            <Box sx={{ padding: 5, border: "1px solid #ccc" }}>
+              <Typography variant="h6">Not image</Typography>
+            </Box>
+          )}
+
+          <Box display={"flex"} flexDirection={"column"}>
+            <Typography variant="h6">{`${moment(post.datetime).format(
+              "MMM Do YYYY, h:mm a"
+            )} `}</Typography>
+            <Typography
+              fontFamily={"monospace"}
+            >{`by ${post.user.username}`}</Typography>
+
+            <Typography
+              variant="h6"
+              component={StyledLink}
+              to={`/posts/${post.id}`}
+            >
+              {post.title}
+            </Typography>
           </Box>
-        )}
 
-        <Box display={"flex"} flexDirection={"column"}>
-          <Typography variant="h6">{`${moment(post.datetime).format(
-            "MMM Do YYYY, h:mm a"
-          )} by ${post.user.displayName}`}</Typography>
-
-          <Typography
-            variant="h6"
-            component={StyledLink}
-            to={`/posts/${post.id}`}
-          >
-            {post.title}
-          </Typography>
+          <CardActions>
+            <IconButton onClick={onDelete}>
+              <DeleteForever />
+            </IconButton>
+          </CardActions>
         </Box>
-        <CardActions>
-          <IconButton onClick={onDelete}>
-            <DeleteForever />
-          </IconButton>
-        </CardActions>
-      </Box>
-    </Card>
+      </Card>
+    </Box>
   );
 };
 

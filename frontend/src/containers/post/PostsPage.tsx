@@ -19,7 +19,7 @@ const PostsPage = () => {
 
   return (
     <Container maxWidth={"sm"}>
-      <Typography textAlign={"center"} variant="h4">
+      <Typography textAlign={"center"} variant="h4" padding={4}>
         Posts
       </Typography>
       {error && (
@@ -28,7 +28,7 @@ const PostsPage = () => {
         </Typography>
       )}
       {posts.map((post) => (
-        <Post onDelete={() => deleteHandler(post.id)} post={post} />
+        <Post key={post.id} onDelete={() => deleteHandler(post.id)} post={post} />
       ))}
     </Container>
   );
