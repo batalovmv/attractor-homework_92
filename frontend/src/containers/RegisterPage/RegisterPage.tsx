@@ -14,6 +14,7 @@ interface RegisterState {
     username: string;
     displayName: string;
     password: string;
+    passwordErrors: string[];
 }
 
 const RegisterPage = () => {
@@ -30,6 +31,7 @@ const RegisterPage = () => {
         displayName: "",
         username: "",
         password: "",
+        passwordErrors: [],
     });
 
     const getErrorsBy = (name: string) => {
@@ -43,12 +45,37 @@ const RegisterPage = () => {
         setState((prevState) => ({ ...prevState, [name]: value }));
     };
 
-    const submitFormHandler = (e: FormEvent<HTMLFormElement>) => {
+    const submitFormHandler = (e: FormEvent) => {
         e.preventDefault();
         if (state.username.trim() === "" || state.password.trim() === "") {
             setOpenSnackbar(true);
             return;
         }
+
+        const passwordErrors: string[] = [];
+
+        if (state.password.length < 8) {
+            passwordErrors.push("Password is too short. Minimum length is 8 characters.");
+        }
+
+        if (state.password.length > 32) {
+            passwordErrors.push("Password is too long. Maximum length is 32 characters.");
+        }
+
+        if (!/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/.test(state.password)) {
+            passwordErrors.push(
+                "Пароль должен содержать хотя бы одну заглавную букву, одну строчную букву, одну цифру или специальный символ.");
+        }
+
+        setState((prevState) => ({
+            ...prevState,
+            passwordErrors: passwordErrors,
+        }));
+
+        if (passwordErrors.length > 0) {
+            return;
+        }
+
         dispatch(registerUser({ ...state }))
             .unwrap()
             .then(() => {
@@ -56,7 +83,7 @@ const RegisterPage = () => {
             })
             .catch((error) => {
                 console.error(error);
-            })
+            });
     };
 
     const handleSnackbarClose = () => {
@@ -113,6 +140,7 @@ const RegisterPage = () => {
                         value={state.password}
                         onChange={inputChangeHandler}
                         error={getErrorsBy("password")}
+                        helperText={state.passwordErrors.join(", ")}
                     />
 
                     <Button
