@@ -49,6 +49,8 @@ export const registerUser = createAsyncThunk<
 });
 
 
+
+
 const initialState: userState = {
     userInfo: null,
     registerError: null,
@@ -80,6 +82,7 @@ const userSlice = createSlice({
                         action.payload?.error.message ?? "Error occurred";
                 }
             });
+            
            
     },
 });

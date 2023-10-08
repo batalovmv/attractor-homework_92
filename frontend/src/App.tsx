@@ -4,6 +4,7 @@ import AppToolbar from "./components/UI/AppToolbar/AppToolbar";
 import { Route, Routes } from "react-router-dom";
 import RegisterPage from "./containers/RegisterPage/RegisterPage";
 
+
 function App() {
   return (
     <>
@@ -13,7 +14,7 @@ function App() {
           <Routes>
             <Route path="/" element={"HOME PAGE"}/>
             <Route path="/register" element={<RegisterPage/>}/>
-            <Route path="/login" element={"Login page here <RegisterPage/>"}/>
+            <Route path="/login" element={ "<LoginPage/>"}/>
 						
 					</Routes>
         </Container>
