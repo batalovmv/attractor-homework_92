@@ -43,7 +43,7 @@ export default function UserMenu({ username }: Props) {
                     <Link to="/add-post">Add new post</Link>
                 </MenuItem>
                 <MenuItem onClick={handleClose}>
-                    <Link to="/logout">Logout</Link>
+                    <Link to="/">Logout</Link>
                 </MenuItem>
             </Menu>
         </div>
