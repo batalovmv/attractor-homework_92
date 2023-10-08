@@ -29,6 +29,9 @@ const LoginPage = () => {
 
     const submitFormHandler = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (state.username.trim() === "" || state.password.trim() === "") {
+            return;
+        }
         dispatch(loginUser({ ...state }))
             .unwrap()
             .then(() => {

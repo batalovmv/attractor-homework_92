@@ -55,11 +55,11 @@ const RegisterPage = () => {
         const passwordErrors: string[] = [];
 
         if (state.password.length < 8) {
-            passwordErrors.push("Password is too short. Minimum length is 8 characters.");
+            passwordErrors.push("Пароль слишком короткий. Минимальная длина — 8 символов.");
         }
 
         if (state.password.length > 32) {
-            passwordErrors.push("Password is too long. Maximum length is 32 characters.");
+            passwordErrors.push("Пароль слишком длинный. Максимальная длина — 32 символа.");
         }
 
         if (!/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/.test(state.password)) {
@@ -140,7 +140,7 @@ const RegisterPage = () => {
                         value={state.password}
                         onChange={inputChangeHandler}
                         error={getErrorsBy("password")}
-                        helperText={state.passwordErrors.join(", ")}
+                        helperText={state.passwordErrors.join(" ")}
                     />
 
                     <Button
