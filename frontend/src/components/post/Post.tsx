@@ -1,11 +1,22 @@
-import { Box, Card, CardMedia, Typography, styled } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardActions,
+  CardMedia,
+  IconButton,
+  Typography,
+  styled,
+} from "@mui/material";
 import { IPost } from "../../interfaces/IPost";
 import moment from "moment";
 import { apiURL } from "../../constants";
 import { Link } from "react-router-dom";
+import { DeleteForever } from "@mui/icons-material";
+import { MouseEventHandler } from "react";
 
 interface Props {
   post: IPost;
+  onDelete: MouseEventHandler<HTMLButtonElement>;
 }
 
 const StyledLink = styled(Link)(() => ({
@@ -14,8 +25,8 @@ const StyledLink = styled(Link)(() => ({
   ["&:hover"]: { color: "inherit" },
 }));
 
-const Post = ({ post }: Props) => {
-  let cardImage: string = "img";
+const Post = ({ post, onDelete }: Props) => {
+  let cardImage: string | undefined = undefined;
 
   if (post.image) {
     cardImage = apiURL + "/uploads/" + post.image;
@@ -24,7 +35,18 @@ const Post = ({ post }: Props) => {
   return (
     <Card elevation={10}>
       <Box display={"flex"} gap={1}>
-        <CardMedia component="img" alt={post.title} src={cardImage} />
+        {cardImage ? (
+          <CardMedia
+            sx={{ height: 200 }}
+            component="img"
+            alt={post.title}
+            src={cardImage}
+          />
+        ) : (
+          <Box sx={{ padding: 5, border: "1px solid #ccc" }}>
+            <Typography variant="h6">Not image</Typography>
+          </Box>
+        )}
 
         <Box display={"flex"} flexDirection={"column"}>
           <Typography variant="h6">{`${moment(post.datetime).format(
@@ -39,6 +61,11 @@ const Post = ({ post }: Props) => {
             {post.title}
           </Typography>
         </Box>
+        <CardActions>
+          <IconButton onClick={onDelete}>
+            <DeleteForever />
+          </IconButton>
+        </CardActions>
       </Box>
     </Card>
   );
