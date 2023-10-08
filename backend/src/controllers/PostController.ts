@@ -42,7 +42,7 @@ export class PostController {
   }
 
   @Delete('/:id')
-  @Authorized() // Только аутентифицированные пользователи могут удалять посты
+  @Authorized() 
   async delete(@Param('id') postId: number, @CurrentUser({ required: true }) user: User, @Res() response: any) {
     if (!user) throw new HttpError(401, "Unauthorized");
 
