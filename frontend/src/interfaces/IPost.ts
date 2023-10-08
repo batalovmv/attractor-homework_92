@@ -1,4 +1,5 @@
 import { IComment } from "./IComment";
+import { IUser } from "./IUser";
 
 export interface IPost {
   id: number;
@@ -7,4 +8,5 @@ export interface IPost {
   image: string;
   datetime: Date;
   comments: IComment[];
+  user: IUser;
 }

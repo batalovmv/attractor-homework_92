@@ -51,7 +51,7 @@ const Post = ({ post, onDelete }: Props) => {
         <Box display={"flex"} flexDirection={"column"}>
           <Typography variant="h6">{`${moment(post.datetime).format(
             "MMM Do YYYY, h:mm a"
-          )}`}</Typography>
+          )} by ${post.user.displayName}`}</Typography>
 
           <Typography
             variant="h6"
