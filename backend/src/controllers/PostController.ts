@@ -1,4 +1,4 @@
-import { Authorized, Body, CurrentUser, Delete, HttpError, JsonController, Param, Post, Req, UseBefore } from "routing-controllers";
+import { Authorized, Body, CurrentUser, Delete, HttpError, JsonController, Param, Post, Req, Res, UseBefore } from "routing-controllers";
 import { CreatePostDto } from "../dto/createPostDto";
 import { UserRepository } from "../repositories/user.repository";
 import { PostRepository } from "../repositories/post.repository";
@@ -32,7 +32,7 @@ export class PostController {
 
   @Delete('/:id')
   @Authorized() // Только аутентифицированные пользователи могут удалять посты
-  async delete(@Param('id') postId: number, @CurrentUser({ required: true }) user: User) {
+  async delete(@Param('id') postId: number, @CurrentUser({ required: true }) user: User, @Res() response: any) {
     if (!user) throw new HttpError(401, "Unauthorized");
 
     const post = await PostRepository.findOne({ where: { id: postId }, relations: ["user"] });
@@ -40,5 +40,7 @@ export class PostController {
     if (post.user.id !== user.id) throw new HttpError(403, "Forbidden");
 
     await PostRepository.remove(post);
+
+    return response.status(200).send({ message: "Post successfully deleted" });
   }
 }
