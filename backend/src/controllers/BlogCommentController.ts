@@ -1,4 +1,4 @@
-import { Authorized, Body, CurrentUser, Delete, HttpError, JsonController, Param, Post, Req } from "routing-controllers";
+import { Authorized, Body, CurrentUser, Delete, HttpError, JsonController, Param, Post, Req, Res } from "routing-controllers";
 import { CreateBlogCommentDto } from "../dto/createBlogCommentDto";
 import { UserRepository } from "../repositories/user.repository";
 import { PostRepository } from "../repositories/post.repository";
@@ -29,7 +29,7 @@ export class BlogCommentController {
 
   @Delete('/:id')
   @Authorized() // Только аутентифицированные пользователи могут удалять комментарии
-  async delete(@Param('id') commentId: number, @CurrentUser({ required: true }) user: User) {
+  async delete(@Param('id') commentId: number, @CurrentUser({ required: true }) user: User, @Res() response: any) {
     if (!user) throw new HttpError(401, "Unauthorized");
 
     const comment = await CommentRepository.findOne({ where: { id: commentId }, relations: ["user"] });
@@ -37,5 +37,6 @@ export class BlogCommentController {
     if (comment.user.id !== user.id) throw new HttpError(403, "Forbidden");
 
     await CommentRepository.delete(comment.id);
+    return response.status(200).send({ message: "Post successfully deleted" });
   }
 }
