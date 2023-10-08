@@ -4,7 +4,7 @@
   "host": "localhost",
   "port": 3306,
   "username": "root",
-  "password": "Abc11223344",
+  "password": "12345678",
   "database": "test",
   "entities": [
     "./src/entities/link.entity.ts"
