@@ -14,7 +14,7 @@ function App() {
           <Routes>
             <Route path="/" element={"HOME PAGE"}/>
             <Route path="/register" element={<RegisterPage/>}/>
-            <Route path="/login" element={ "<LoginPage/>"}/>
+            <Route path="/login" element={ "Здесь будет ввод зарегитсрированного пользователя <LoginPage/>"}/>
 						
 					</Routes>
         </Container>
