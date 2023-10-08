@@ -5,5 +5,5 @@ export class CreateBlogCommentDto {
   text!: string;
 
   @IsString()
-  postId!: string;
+  postId!: number;
 }
