@@ -14,7 +14,6 @@ interface userState {
 
 type userRequest = {
     username: string;
-    displayName?: string;
     password: string;
 };
 
@@ -67,7 +66,9 @@ export const loginUser = createAsyncThunk<
     }
 });
 
-
+export const logoutUser = createAsyncThunk("auth.logout", async (_, { dispatch }) => {
+    dispatch(userSlice.actions.logout());
+});
 
 
 const initialState: userState = {
@@ -80,7 +81,11 @@ const initialState: userState = {
 const userSlice = createSlice({
     name: "user",
     initialState,
-    reducers: {},
+    reducers: {
+        logout: (state) => {
+            state.userInfo = null;
+        }
+    },
     extraReducers: (builder) => {
         builder
             .addCase(registerUser.pending, (state) => {

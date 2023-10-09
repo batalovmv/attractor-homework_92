@@ -2,6 +2,8 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { IPost } from "../../interfaces/IPost";
 import { IComment } from "../../interfaces/IComment";
 import axiosInstance from "../../Api/axiosInstance";
+import { RootState } from "../../store";
+import { isAxiosError } from "axios";
 
 interface State {
   post: IPost | undefined;
@@ -16,6 +18,11 @@ const initialState: State = {
   error: null,
   loading: false,
 };
+
+interface CommentData {
+  text: string;
+  postId: number;
+}
 
 export const fetchPost = createAsyncThunk(
   "fetch/post",
@@ -32,28 +39,55 @@ export const fetchComments = createAsyncThunk(
 
   async (id?: number) => {
     return await axiosInstance
-      .get<IComment[]>(`/comments?post_id=${id}`)
+      .get<IComment[]>(`/comments/${id}`)
       .then((res) => res.data);
   }
 );
 
-export const createComment = createAsyncThunk(
+export const createComment = createAsyncThunk<
+  IComment,
+  CommentData,
+  { state: RootState }
+>(
   "create/comment",
 
-  async (payload) => {
+  async (payload: CommentData, { getState }) => {
+    const token = getState().user.userInfo?.token;
+    console.log(payload);
+
     return await axiosInstance
-      .post<IComment>("/comments", payload)
+      .post<IComment>("/comments", payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => res.data);
   }
 );
 
-export const deleteComment = createAsyncThunk(
-  "delete/comment",
-  async (id: number) => {
-    await axiosInstance.delete(`/comments/${id} `);
-    return id;
+export const deleteComment = createAsyncThunk<
+  number,
+  number,
+  {
+    state: RootState;
   }
-);
+>("delete/comment", async (id, thunkAPI) => {
+  try {
+    const token = thunkAPI.getState().user.userInfo?.token;
+    const response = await axiosInstance.delete(`/comments/${id} `, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    if (isAxiosError(error)) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || "An error occured"
+      );
+    } else {
+      return thunkAPI.rejectWithValue("An error occured");
+    }
+  }
+});
 
 const PostDetailsSlice = createSlice({
   name: "postDetails",
@@ -97,13 +131,9 @@ const PostDetailsSlice = createSlice({
         state.loading = true;
       })
 
-      .addCase(deleteComment.fulfilled, (state, action) => {
+      .addCase(deleteComment.rejected, (state, action) => {
         state.loading = false;
-        const deletedCommentId = action.payload;
-        if (state.comments)
-          state.comments = state.comments.filter(
-            (item) => item.id !== deletedCommentId
-          );
+        state.error = action.error as Error;
       });
   },
 });
