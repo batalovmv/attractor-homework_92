@@ -11,5 +11,5 @@ export const AppDataSource = new DataSource({
   password: 'Abc11223344',
   database: 'test',
   entities: [Post, BlogComment,User],
-  synchronize: true
+  synchronize: true,
 });

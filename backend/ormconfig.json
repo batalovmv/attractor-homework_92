@@ -8,6 +8,8 @@
   "database": "test",
   "entities": [
     "./src/entities/link.entity.ts"
-  ]
+  ],
+  "synchronize": true
+
   
 }
