@@ -28,7 +28,11 @@ const PostsPage = () => {
         </Typography>
       )}
       {posts.map((post) => (
-        <Post key={post.id} onDelete={() => deleteHandler(post.id)} post={post} />
+        <Post
+          key={post.id}
+          onDelete={() => deleteHandler(post.id)}
+          post={post}
+        />
       ))}
     </Container>
   );
