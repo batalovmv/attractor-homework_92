@@ -53,12 +53,12 @@ export const deletePost = createAsyncThunk<
 >("delete/post", async (id, thunkAPI) => {
   try {
     const token = thunkAPI.getState().user.userInfo?.token;
-    const response = await axiosInstance.delete(`/posts/${id} `, {
+    await axiosInstance.delete(`/posts/${id} `, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.data;
+    return id;
   } catch (error) {
     if (isAxiosError(error)) {
       return thunkAPI.rejectWithValue(
@@ -94,8 +94,10 @@ const PostSlice = createSlice({
       .addCase(fetchPosts.pending, (state) => {
         state.loading = true;
       })
-
-
+      .addCase(deletePost.fulfilled, (state, action) => {
+        state.posts = state.posts.filter(post => post.id !== action.payload);
+        state.loading = false;
+      })
 
       .addCase(deletePost.rejected, (state, action) => {
         state.loading = false;
