@@ -5,6 +5,7 @@ import { PostRepository } from "../repositories/post.repository";
 import { request } from "express";
 import { MulterUpload } from "../multer/uploadPostPhoto";
 import { User } from "../entities/user.entity";
+import { CommentRepository } from "../repositories/blogComment.repository";
 
 @JsonController('/posts')
 export class PostController {
@@ -99,12 +100,15 @@ export class PostController {
   async delete(@Param('id') postId: number, @CurrentUser({ required: true }) user: User, @Res() response: any) {
     if (!user) throw new HttpError(401, "Unauthorized");
 
-    const post = await PostRepository.findOne({ where: { id: postId }, relations: ["user"] });
+    // Загрузка поста с его связями
+    const post = await PostRepository.findOne({ where: { id: postId }, relations: ["user", "comments"] });
     if (!post) throw new HttpError(404, "Post not found");
     if (post.user.id !== user.id) throw new HttpError(403, "Forbidden");
-
+    await CommentRepository.delete({ post: post });
+    // Удаление поста с использованием метода remove
     await PostRepository.remove(post);
 
     return response.status(200).send({ message: "Post successfully deleted" });
   }
+
 }

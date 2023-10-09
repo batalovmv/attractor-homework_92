@@ -22,6 +22,6 @@ export class Post {
   @ManyToOne(() => User, user => user.posts)
   user!: User;
 
-  @OneToMany(() => BlogComment, comment => comment.post)
+  @OneToMany(() => BlogComment, comment => comment.post, { cascade: true, onDelete: "CASCADE" })
   comments!: BlogComment[];
 }

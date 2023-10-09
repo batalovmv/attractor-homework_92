@@ -35,13 +35,13 @@ AppDataSource.initialize().then(async () => {
   // Обработчик ошибок, добавил статус ошибки для отладки
   app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error(`Error encountered: ${err.message}`);
-    next(err);
+    res.status(500).json({ error: err.message });
   });
-
   app.all('*', (req, res) => {
-    res.status(404).json({ message: 'Route Not Found' });
+    if (!res.headersSent) {
+      res.status(404).json({ message: 'Route Not Found' });
+    }
   });
-
   app.listen(3006, () => {
     console.log('Server is running on port 3006');
   });
