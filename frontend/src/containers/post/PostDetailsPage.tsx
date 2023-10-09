@@ -4,16 +4,27 @@ import { RootState } from "../../store";
 import { useEffect } from "react";
 
 import { Box, Container, Typography } from "@mui/material";
-import { fetchComments, fetchPost } from "../../features/post/postDetails";
+import {
+  createComment,
+  deleteComment,
+  fetchComments,
+  fetchPost,
+} from "../../features/post/postDetailsSlice";
 import moment from "moment";
+import CommentItem from "../../components/comments/CommentItem";
+import CommentForm from "../../components/comments/CommentForm";
 
 const PostDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
 
-  const { post, error } = useAppSelector(
+  const { post, error, comments } = useAppSelector(
     (state: RootState) => state.postDetails
   );
+
+  const user = useAppSelector((state) => {
+    return state.user.userInfo;
+  });
 
   useEffect(() => {
     if (id) {
@@ -21,6 +32,19 @@ const PostDetailsPage = () => {
       dispatch(fetchComments(Number(id)));
     }
   }, [dispatch, id]);
+
+  const submitComment = async (text: string, postId: number) => {
+    const comment = {
+      text: text,
+      postId: postId,
+    };
+    await dispatch(createComment(comment));
+    dispatch(fetchComments(Number(id)));
+  };
+
+  const deleteCommentHandler =  (id: number) => {
+     dispatch(deleteComment(id));
+  };
 
   return (
     <Container maxWidth="sm">
@@ -34,13 +58,40 @@ const PostDetailsPage = () => {
           <Typography variant="h4" textAlign={"center"}>
             {post.title}
           </Typography>
-          <Typography variant="h6">{`${moment(post.datetime).format(
-            "MMM Do YYYY, h:mm a"
-          )} by ${post.user.username}`}</Typography>
+          <Typography fontFamily={"monospace"} variant="h6">{`${moment(
+            post.datetime
+          ).format("MMM Do YYYY, h:mm a")} by ${
+            post.user.username
+          }`}</Typography>
+          <Box
+            mt={2}
+            sx={{
+              background: "#b84a8591",
 
-          <Typography variant="h6" mt={3}>
-            {post.description}
-          </Typography>
+              padding: "5px",
+              borderRadius: 2,
+            }}
+            width={"100%"}
+          >
+            <Typography variant="h6" padding={1}>
+              {post.description}
+            </Typography>
+          </Box>
+        </Box>
+      )}
+      <Box>
+        {comments?.map((comment) => (
+          <CommentItem
+            key={comment.id}
+            comment={comment}
+            onDelete={() => deleteCommentHandler(comment.id)}
+          />
+        ))}
+      </Box>
+
+      {user && (
+        <Box>
+          <CommentForm onSubmit={submitComment} />
         </Box>
       )}
     </Container>

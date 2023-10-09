@@ -13,6 +13,8 @@ import { apiURL } from "../../constants";
 import { Link } from "react-router-dom";
 import { DeleteForever } from "@mui/icons-material";
 import { MouseEventHandler } from "react";
+import { useAppSelector } from "../../store/hooks";
+import { RootState } from "../../store";
 
 interface Props {
   post: IPost;
@@ -27,6 +29,9 @@ const StyledLink = styled(Link)(() => ({
 
 const Post = ({ post, onDelete }: Props) => {
   let cardImage: string | undefined = undefined;
+  const currentUser = useAppSelector(
+    (state: RootState) => state.user.userInfo?.username
+  );
 
   if (post.image) {
     cardImage = apiURL + "/uploads/post_photos/" + post.image;
@@ -40,7 +45,7 @@ const Post = ({ post, onDelete }: Props) => {
             <CardMedia
               sx={{ height: 200, width: 200 }}
               component="img"
-              alt={post.title}
+              alt="post image"
               src={cardImage}
             />
           ) : (
@@ -48,7 +53,7 @@ const Post = ({ post, onDelete }: Props) => {
               <Typography variant="h6">Not image</Typography>
             </Box>
           )}
-          <Box display={'flex'} justifyContent={'space-between'} width={'100%'}>
+          <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
             <Box display={"flex"} flexDirection={"column"}>
               <Typography variant="h6">{`${moment(post.datetime).format(
                 "MMM Do YYYY, h:mm a"
@@ -66,11 +71,13 @@ const Post = ({ post, onDelete }: Props) => {
               </Typography>
             </Box>
 
-            <CardActions>
-              <IconButton onClick={onDelete}>
-                <DeleteForever />
-              </IconButton>
-            </CardActions>
+            {currentUser && currentUser === post.user.username && (
+              <CardActions>
+                <IconButton onClick={onDelete}>
+                  <DeleteForever />
+                </IconButton>
+              </CardActions>
+            )}
           </Box>
         </Box>
       </Card>
