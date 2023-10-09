@@ -48,29 +48,30 @@ const Post = ({ post, onDelete }: Props) => {
               <Typography variant="h6">Not image</Typography>
             </Box>
           )}
+          <Box display={'flex'} justifyContent={'space-between'} width={'100%'}>
+            <Box display={"flex"} flexDirection={"column"}>
+              <Typography variant="h6">{`${moment(post.datetime).format(
+                "MMM Do YYYY, h:mm a"
+              )} `}</Typography>
+              <Typography
+                fontFamily={"monospace"}
+              >{`by ${post.user.username}`}</Typography>
 
-          <Box display={"flex"} flexDirection={"column"}>
-            <Typography variant="h6">{`${moment(post.datetime).format(
-              "MMM Do YYYY, h:mm a"
-            )} `}</Typography>
-            <Typography
-              fontFamily={"monospace"}
-            >{`by ${post.user.username}`}</Typography>
+              <Typography
+                variant="h6"
+                component={StyledLink}
+                to={`/posts/${post.id}`}
+              >
+                {post.title}
+              </Typography>
+            </Box>
 
-            <Typography
-              variant="h6"
-              component={StyledLink}
-              to={`/posts/${post.id}`}
-            >
-              {post.title}
-            </Typography>
+            <CardActions>
+              <IconButton onClick={onDelete}>
+                <DeleteForever />
+              </IconButton>
+            </CardActions>
           </Box>
-
-          <CardActions>
-            <IconButton onClick={onDelete}>
-              <DeleteForever />
-            </IconButton>
-          </CardActions>
         </Box>
       </Card>
     </Box>

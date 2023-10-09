@@ -26,12 +26,20 @@ export const fetchPosts = createAsyncThunk(
   }
 );
 
-export const createPost = createAsyncThunk(
-  "create/post",
+export const createPost = createAsyncThunk<
+  IPost,
+  FormData,
+  { state: RootState }
+>(
+  "create/posts",
 
-  async (payload: FormData) => {
+  async (payload: FormData, { getState }) => {
+    const token = getState().user.userInfo?.token;
+
     return await axiosInstance
-      .post<IPost>("/posts", payload)
+      .post<IPost>("/posts", payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => res.data);
   }
 );

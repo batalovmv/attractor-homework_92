@@ -36,7 +36,7 @@ const PostDetailsPage = () => {
           </Typography>
           <Typography variant="h6">{`${moment(post.datetime).format(
             "MMM Do YYYY, h:mm a"
-          )} by ${post.user.displayName}`}</Typography>
+          )} by ${post.user.username}`}</Typography>
 
           <Typography variant="h6" mt={3}>
             {post.description}
