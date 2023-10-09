@@ -16,7 +16,7 @@ export class BlogCommentController {
       order: {
         datetime: "DESC" 
       },
-      relations: ["user", "post"]
+      relations: ["user", "post"], select: ["id", "text", "datetime", "user", "post"]
     });
     return comments;
   }
