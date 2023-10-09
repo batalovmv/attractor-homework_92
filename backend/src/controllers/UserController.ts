@@ -4,6 +4,7 @@ import { LoginUserDto } from "../dto/loginUserDto";
 import { nanoid } from 'nanoid';
 import bcrypt from 'bcrypt';
 import { UserRepository } from "../repositories/user.repository";
+import { User } from "../entities/user.entity";
 
 @JsonController('/users')
 export class UserController {
@@ -11,13 +12,20 @@ export class UserController {
   async create(@Body() userData: CreateUserDto) {
     console.log(userData)
     const hashedPassword = await bcrypt.hash(userData.password, 10);
-    const newUser = UserRepository.create({
-      ...userData,
-      password: hashedPassword
-    });
+    const newUser = new User();
+    newUser.username = userData.username;
+    newUser.password = hashedPassword;
     newUser.token = nanoid();
     await UserRepository.save(newUser);
-    return newUser;
+
+    // Создаем обьект только с нужными нам полями
+    const responseUser = {
+      id: newUser.id,
+      username: newUser.username,
+      token: newUser.token
+    };
+
+    return responseUser;
   }
 
   @Post('/login')
