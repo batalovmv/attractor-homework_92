@@ -35,7 +35,11 @@ AppDataSource.initialize().then(async () => {
   // Обработчик ошибок, добавил статус ошибки для отладки
   app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error(`Error encountered: ${err.message}`);
-    res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
+    next(err);
+  });
+
+  app.all('*', (req, res) => {
+    res.status(404).json({ message: 'Route Not Found' });
   });
 
   app.listen(3006, () => {
@@ -43,6 +47,3 @@ AppDataSource.initialize().then(async () => {
   });
 });
 
-app.use((req, res) => {
-  res.status(404).json({ message: 'Route Not Found' });
-});
