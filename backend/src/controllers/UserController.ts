@@ -45,6 +45,9 @@ export class UserController {
     user.token = nanoid();
     await UserRepository.save(user);
 
+
     return { token: user.token, username: user.username,id:user.id };
+
+
   }
 }
