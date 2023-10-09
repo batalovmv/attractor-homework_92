@@ -23,9 +23,6 @@ app.use((req, res, next) => {
 
 
 AppDataSource.initialize().then(async () => {
- 
-
-
   useExpressServer(app, {
     classTransformer: true,
     validation: true,
@@ -46,6 +43,8 @@ AppDataSource.initialize().then(async () => {
     res.status(404).json({ message: 'Route Not Found' });
   });
 
-  app.listen(3006);
+  app.listen(3006, () => {
+    console.log('Server is running on port 3006');
+  });
 
 });
