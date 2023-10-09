@@ -12,7 +12,6 @@ import React from "react";
 
 interface RegisterState {
     username: string;
-    displayName: string;
     password: string;
     passwordErrors: string[];
    
@@ -29,7 +28,6 @@ const RegisterPage = () => {
     ));
 
     const [state, setState] = useState<RegisterState>({
-        displayName: "",
         username: "",
         password: "",
         passwordErrors: [],
@@ -111,15 +109,7 @@ const RegisterPage = () => {
                     noValidate
                     sx={{ mt: 1 }}
                 >
-                    <FormElement
-                        label="Your name"
-                        name="displayName"
-                        autoFocus
-                        value={state.displayName}
-                        onChange={inputChangeHandler}
-                        error={getErrorsBy("displayName")}
-                    />
-
+                    
                     <FormElement
                         required
                         label="Login"

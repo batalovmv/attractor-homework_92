@@ -3,6 +3,8 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAppDispatch } from "../../../store/hooks";
+import { logoutUser } from "../../../features/user/userSlice";
 
 interface Props {
     username: string;
@@ -11,12 +13,17 @@ interface Props {
 export default function UserMenu({ username }: Props) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
+    const dispatch = useAppDispatch();
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
     };
     const handleClose = () => {
         setAnchorEl(null);
+    };
+
+    const handleLogout = () => {
+        dispatch(logoutUser());
     };
 
     return (
@@ -42,7 +49,7 @@ export default function UserMenu({ username }: Props) {
                 <MenuItem onClick={handleClose}>
                     <Link to="/add-post">Add new post</Link>
                 </MenuItem>
-                <MenuItem onClick={handleClose}>
+                <MenuItem onClick={handleLogout}>
                     <Link to="/">Logout</Link>
                 </MenuItem>
             </Menu>

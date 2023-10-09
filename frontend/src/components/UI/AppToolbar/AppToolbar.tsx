@@ -20,7 +20,7 @@ const AppToolbar = () => {
               Forum App
             </Typography>
             {user ? (
-              <UserMenu username={user.displayName ?? user.username} />
+              <UserMenu username={user.username} />
             ) : (
               <Grid item>
                 <Button component={Link} to={"/register"}>
