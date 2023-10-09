@@ -79,7 +79,8 @@ const PostDetailsPage = () => {
           </Box>
         </Box>
       )}
-      <Box>
+      <Box mt={3}>
+				<Typography variant="h6">Comments:</Typography>
         {comments?.map((comment) => (
           <CommentItem
             key={comment.id}
