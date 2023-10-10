@@ -32,7 +32,7 @@ const CommentForm = (props: Props) => {
     }
 
     if (postId) props.onSubmit(state.text, Number(postId));
-    console.log(postId);
+    setState({ text: "", error: "" });
   };
 
   const inputChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {

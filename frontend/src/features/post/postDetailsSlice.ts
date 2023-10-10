@@ -53,8 +53,6 @@ export const createComment = createAsyncThunk<
 
   async (payload: CommentData, { getState }) => {
     const token = getState().user.userInfo?.token;
-    console.log(payload);
-
     return await axiosInstance
       .post<IComment>("/comments", payload, {
         headers: { Authorization: `Bearer ${token}` },
