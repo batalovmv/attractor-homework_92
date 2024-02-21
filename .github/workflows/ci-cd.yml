@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build-and-deploy:
@@ -27,15 +27,15 @@ jobs:
           # Например: docker run projectPosts test
 
       - name: Push to Docker Registry
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
           docker tag projectPosts your-docker-registry/projectPosts:latest
           docker push your-docker-registry/projectPosts:latest
 
       - name: Deploy to Remote Server
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-        uses: appleboy/ssh-action@master
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: appleboy/ssh-action@main
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
