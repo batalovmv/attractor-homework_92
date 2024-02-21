@@ -11,7 +11,8 @@ services:
       - some-network  
     volumes:
       - ./frontend/src:/app/frontend
-    backend:
+    depends_on:
+      backend:
         condition: service_healthy
 
   backend:
