@@ -12,7 +12,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-
+    - name: List files
+      run: |
+       ls -R
     - name: Build Docker images
       run: |
         docker build -t user/myapp-backend:latest ./path/to/backend
