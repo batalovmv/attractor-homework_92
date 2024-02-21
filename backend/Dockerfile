@@ -3,10 +3,11 @@ FROM node:latest
 
 WORKDIR /app
 
+# Обновляем список пакетов и устанавливаем клиент MySQL
+RUN apt-get update && apt-get install -y default-mysql-client && rm -rf /var/lib/apt/lists/*
 
+# Копируем файлы package.json и устанавливаем зависимости
 COPY package*.json ./
-
-
 RUN npm install
 
 # Копируем исходный код приложения в контейнер
