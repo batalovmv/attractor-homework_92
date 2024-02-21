@@ -6,7 +6,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-
+# Устанавливаем зависимости, включая ts-node и nodemon
 RUN npm install
 
 # Копируем исходный код приложения в контейнер
