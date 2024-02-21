@@ -12,15 +12,21 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+
     - name: List files
-      run: |
-       ls -R
-    - name: Build Docker images
-      run: |
-        docker build -t user/myapp-backend:latest ./path/to/backend
-        docker save user/myapp-backend:latest > myapp-backend.tar
-        docker build -t user/myapp-frontend:latest ./path/to/frontend
-        docker save user/myapp-frontend:latest > myapp-frontend.tar
+      run: ls -R
+
+    - name: Build Backend Docker image
+      run: docker build -t user/myapp-backend:latest ./backend
+
+    - name: Save Backend Docker image
+      run: docker save user/myapp-backend:latest > myapp-backend.tar
+
+    - name: Build Frontend Docker image
+      run: docker build -t user/myapp-frontend:latest ./frontend
+
+    - name: Save Frontend Docker image
+      run: docker save user/myapp-frontend:latest > myapp-frontend.tar
 
     - name: Transfer Docker Images to Server
       uses: appleboy/scp-action@master
@@ -41,7 +47,9 @@ jobs:
           # Load Docker images
           docker load -i ~/docker_images/myapp-backend.tar
           docker load -i ~/docker_images/myapp-frontend.tar
+          # Assuming you have a docker-compose file at the root of your repository
           docker-compose down --rmi all -v
           docker-compose up -d
+          # Remove the transferred Docker images to free up space
           rm -f ~/docker_images/myapp-backend.tar
           rm -f ~/docker_images/myapp-frontend.tar
