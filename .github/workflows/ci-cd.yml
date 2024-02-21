@@ -54,9 +54,9 @@ jobs:
             docker pull ghcr.io/${{ github.repository_owner }}/projectposts-backend:${{ github.sha }}
             docker stop myapp-backend-container || true
             docker rm myapp-backend-container || true
-            docker run -d --name myapp-backend-container ghcr.io/${{ github.repository_owner }}/projectposts-backend:${{ github.sha }}
+            docker run -d --name myapp-backend-container -p 80:3006 ghcr.io/${{ github.repository_owner }}/projectposts-backend:${{ github.sha }}
 
             docker pull ghcr.io/${{ github.repository_owner }}/projectposts-frontend:${{ github.sha }}
             docker stop myapp-frontend-container || true
             docker rm myapp-frontend-container || true
-            docker run -d --name myapp-frontend-container ghcr.io/${{ github.repository_owner }}/projectposts-frontend:${{ github.sha }}
+            docker run -d --name myapp-frontend-container -p 80:80 ghcr.io/${{ github.repository_owner }}/projectposts-frontend:${{ github.sha }}
