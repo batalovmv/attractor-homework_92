@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"
+    volumes:
+      - ./frontend/src:/app/frontend
     depends_on:
       - backend
 
@@ -15,14 +17,16 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3006:3006"
+    volumes:
+      - ./backend/src:/app/backend
     environment:
       - MYSQL_HOST=mysql
       - MYSQL_USER=root
       - MYSQL_PASSWORD=qwerty123
       - MYSQL_DB=test
     depends_on:
-      - mysql:
-        condition: service_healthy
+      - mysql
+       
 
   mysql:
     image: mysql:8.0 
