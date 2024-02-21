@@ -39,6 +39,7 @@ jobs:
           # Load Docker images
           docker load -i ~/docker_images/myapp-backend.tar
           docker load -i ~/docker_images/myapp-frontend.tar
-
-          docker-compose down
+          docker-compose down --rmi all -v
           docker-compose up -d
+          rm -f ~/docker_images/myapp-backend.tar
+          rm -f ~/docker_images/myapp-frontend.tar
