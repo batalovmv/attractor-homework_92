@@ -1,0 +1,47 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build Docker Image
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/projectPosts:tag .
+
+      - name: Login to GitHub Container Registry
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      
+      - name: Push Docker image to GitHub Container Registry
+        run: docker push ghcr.io/${{ github.repository_owner }}/projectPosts:tag
+ 
+      - name: Run Tests
+        run: |
+          # Здесь должны быть команды для запуска ваших тестов
+          # Например: docker run projectPosts test
+
+      - name: Push to Docker Registry
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        run: |
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          docker tag projectPosts your-docker-registry/projectPosts:latest
+          docker push your-docker-registry/projectPosts:latest
+
+      - name: Deploy to Remote Server
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker pull your-docker-registry/projectPosts:latest
+            docker stop your-container || true
+            docker rm your-container || true
+            docker run -d --name your-container your-docker-registry/projectPosts:latest

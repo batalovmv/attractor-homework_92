@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3006:3006"
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=qwerty123
+      - MYSQL_DB=test
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0 
+    environment:
+      - MYSQL_ROOT_PASSWORD=qwerty123
+      - MYSQL_DATABASE=test
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:

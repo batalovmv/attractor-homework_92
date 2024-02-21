@@ -1,0 +1,7 @@
+node_modules/
+.env
+dist/
+built/
+/src/uploads/post_photos/*
+!/src/uploads/post_photos/.gitkeep
+

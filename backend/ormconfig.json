@@ -1,0 +1,13 @@
+
+{
+    "type": "mysql",
+    "host": "mysql",
+    "port": 3306,
+    "username": "root",
+    "password": "qwerty123",
+    "database": "test",
+    "entities": [
+        "./src/entities/*.ts"
+    ],
+    "synchronize": true
+}
