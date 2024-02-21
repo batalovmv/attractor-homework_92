@@ -3,7 +3,7 @@ FROM node:latest
 
 WORKDIR /app
 
-# Копируем файлы package.json и package-lock.json (если есть)
+
 COPY package*.json ./
 
 # Устанавливаем зависимости, включая ts-node и nodemon

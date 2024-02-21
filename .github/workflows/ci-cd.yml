@@ -26,7 +26,7 @@ jobs:
 
       - name: Push Frontend Docker Image to GitHub Container Registry
         run: docker push ghcr.io/${{ github.repository_owner }}/projectposts-frontend:${{ github.sha }}
- 
+
       - name: Run Tests
         run: |
           # Здесь должны быть команды для запуска ваших тестов
@@ -47,7 +47,12 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            docker pull your-docker-registry/projectposts:latest
-            docker stop your-container || true
-            docker rm your-container || true
-            docker run -d --name your-container your-docker-registry/projectposts:latest
+            docker pull ghcr.io/${{ github.repository_owner }}/projectposts-backend:${{ github.sha }}
+            docker stop myapp-backend-container || true
+            docker rm myapp-backend-container || true
+            docker run -d --name myapp-backend-container ghcr.io/${{ github.repository_owner }}/projectposts-backend:${{ github.sha }}
+
+            docker pull ghcr.io/${{ github.repository_owner }}/projectposts-frontend:${{ github.sha }}
+            docker stop myapp-frontend-container || true
+            docker rm myapp-frontend-container || true
+            docker run -d --name myapp-frontend-container ghcr.io/${{ github.repository_owner }}/projectposts-frontend:${{ github.sha }}
