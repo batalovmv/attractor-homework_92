@@ -59,4 +59,4 @@ jobs:
             docker pull ghcr.io/${{ github.repository_owner }}/projectposts-frontend:${{ github.sha }}
             docker stop myapp-frontend-container || true
             docker rm myapp-frontend-container || true
-            docker run -d --name myapp-frontend-container -p 8080:80 ghcr.io/${{ github.repository_owner }}/projectposts-frontend:${{ github.sha }}
+            docker run -d --name myapp-frontend-container -p 8081:80 ghcr.io/${{ github.repository_owner }}/projectposts-frontend:${{ github.sha }}
