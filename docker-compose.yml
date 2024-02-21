@@ -17,6 +17,10 @@ services:
 
   backend:
     image: myapp-backend:latest
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 5
     build: 
       context: ./backend
       dockerfile: Dockerfile
