@@ -36,8 +36,12 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-          docker tag projectposts your-docker-registry/projectposts:latest
-          docker push your-docker-registry/projectposts:latest
+          # Убедитесь, что здесь используются правильные имена образов для backend и frontend
+          docker tag ghcr.io/${{ github.repository_owner }}/projectposts-backend:${{ github.sha }} your-docker-registry/projectposts-backend:latest
+          docker push your-docker-registry/projectposts-backend:latest
+          
+          docker tag ghcr.io/${{ github.repository_owner }}/projectposts-frontend:${{ github.sha }} your-docker-registry/projectposts-frontend:latest
+          docker push your-docker-registry/projectposts-frontend:latest
 
       - name: Deploy to Remote Server
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
