@@ -1,6 +1,7 @@
 version: '3.8'
 services:
   frontend:
+    image: myapp-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -12,6 +13,7 @@ services:
       - backend
 
   backend:
+    image: myapp-backend:latest
     build: 
       context: ./backend
       dockerfile: Dockerfile
