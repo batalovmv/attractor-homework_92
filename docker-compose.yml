@@ -11,11 +11,16 @@ services:
       - some-network  
     volumes:
       - ./frontend/src:/app/frontend
-    depends_on:
-      - backend
+    backend:
+        condition: service_healthy
 
   backend:
     image: myapp-backend:latest
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3006"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     build: 
       context: ./backend
       dockerfile: Dockerfile
