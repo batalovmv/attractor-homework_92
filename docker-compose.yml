@@ -19,6 +19,8 @@ services:
     build: 
       context: ./backend
       dockerfile: Dockerfile
+    networks:
+      - some-network  
     ports:
       - "3006:3006"
     volumes:
@@ -37,6 +39,8 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=qwerty123
       - MYSQL_DATABASE=test
+    networks:
+      - some-network  
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
