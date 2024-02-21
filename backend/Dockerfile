@@ -1,4 +1,4 @@
-# Используйте image node последней версии
+
 FROM node:latest
 
 WORKDIR /app
