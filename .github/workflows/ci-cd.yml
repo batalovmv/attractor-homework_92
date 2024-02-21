@@ -30,18 +30,7 @@ jobs:
       - name: Run Tests
         run: |
           # Здесь должны быть команды для запуска ваших тестов
-          # Например: docker run projectposts test
-
-      - name: Push to Docker Registry
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-          # Убедитесь, что здесь используются правильные имена образов для backend и frontend
-          docker tag ghcr.io/${{ github.repository_owner }}/projectposts-backend:${{ github.sha }} batalovmv/projectposts-backend:latest
-          docker push batalovmv/projectposts-backend:latest
-          
-          docker tag ghcr.io/${{ github.repository_owner }}/projectposts-frontend:${{ github.sha }} batalovmv/projectposts-frontend:latest
-          docker push batalovmv/projectposts-frontend:latest
+          # Например: docker run projectposts-backend:${{ github.sha }} test
 
       - name: Deploy to Remote Server
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -51,12 +40,20 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Удаление старых образов и контейнеров
             docker pull ghcr.io/${{ github.repository_owner }}/projectposts-backend:${{ github.sha }}
             docker stop myapp-backend-container || true
             docker rm myapp-backend-container || true
+            docker rmi $(docker images -q ghcr.io/${{ github.repository_owner }}/projectposts-backend:previous) || true
+            docker tag ghcr.io/${{ github.repository_owner }}/projectposts-backend:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/projectposts-backend:previous
             docker run -d --name myapp-backend-container -p 80:3006 ghcr.io/${{ github.repository_owner }}/projectposts-backend:${{ github.sha }}
-
+            
             docker pull ghcr.io/${{ github.repository_owner }}/projectposts-frontend:${{ github.sha }}
             docker stop myapp-frontend-container || true
             docker rm myapp-frontend-container || true
+            docker rmi $(docker images -q ghcr.io/${{ github.repository_owner }}/projectposts-frontend:previous) || true
+            docker tag ghcr.io/${{ github.repository_owner }}/projectposts-frontend:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/projectposts-frontend:previous
             docker run -d --name myapp-frontend-container -p 8081:80 ghcr.io/${{ github.repository_owner }}/projectposts-frontend:${{ github.sha }}
+
+            # Очистка неиспользуемых образов
+            docker image prune -af

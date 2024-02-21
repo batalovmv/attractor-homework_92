@@ -10,7 +10,7 @@ import NewPost from "./containers/post/NewPost";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import userSlice, { loadFromLocalStorage } from "./features/user/userSlice";
-import { useEffect } from "react";
+import { useEffect } from "react"
 
 
 function App() {
