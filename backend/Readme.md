@@ -51,7 +51,7 @@
 }
 ```
 
-### `/posts`
+### `/posts/`
 
 #### GET /posts
 
