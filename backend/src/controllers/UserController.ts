@@ -21,7 +21,7 @@ export class UserController {
         try {
             const existingUser = await UserRepository.findOne({ where: { email: userData.email } });
             if (existingUser) {
-                throw new HttpError(400, 'Пользователь с таким email уже существует.');
+                return response.status(400).json({ message: 'Пользователь с таким email уже существует.' });
             }
             const hashedPassword = await bcrypt.hash(userData.password, 10);
             const newUser = new User();
@@ -34,52 +34,77 @@ export class UserController {
             await UserRepository.save(newUser);
             await sendConfirmationEmail(newUser.email, newUser.token);
 
-           return response.status(201).json({ message: 'Пожалуйста, проверьте вашу почту для подтверждения регистрации.' });
-        } catch (error) {
+            return response.status(201).json({ message: 'Пожалуйста, проверьте вашу почту для подтверждения регистрации.' });
+        } catch (error: unknown) {
             console.error('Ошибка при создании пользователя или отправке письма: ', error);
-           return response.status(500).json({ message: 'Ошибка при регистрации.' });
+
+            // Проверяем, является ли error объектом и содержит ли он свойство httpCode
+            if (typeof error === 'object' && error !== null && 'httpCode' in error) {
+                // Теперь мы можем безопасно обратиться к httpCode, предполагая что error имеет тип any
+                const err = error as { httpCode: number; message: string };
+                const statusCode = err.httpCode || 500;
+                const message = statusCode === 500 ? 'Ошибка при регистрации.' : err.message;
+                return response.status(statusCode).json({ message: message });
+            } else {
+                // Для всех других типов ошибок возвращаем 500 Internal Server Error
+                return response.status(500).json({ message: 'Ошибка при регистрации.' });
+            }
         }
     }
 
     @Post('/login')
-    async login(@Body() loginData: LoginUserDto) {
-        const user = await UserRepository.findOne({
-            where: {
-                username: loginData.username,
+    async login(@Body() loginData: LoginUserDto, @Res() response: Response) {
+        try {
+            const user = await UserRepository.findOne({
+                where: {
+                    username: loginData.username,
+                }
+            });
+
+            if (!user) {
+                return response.status(401).json({ message: "Пользователь не найден" });
             }
-        });
 
-        if (!user) throw new HttpError(401, "Пользователь не найден");
+            const isPasswordMatch = await bcrypt.compare(loginData.password, user.password);
 
-        const isPasswordMatch = await bcrypt.compare(loginData.password, user.password);
+            if (!isPasswordMatch) {
+                return response.status(401).json({ message: "Неверный пароль" });
+            }
 
-        if (!isPasswordMatch) throw new HttpError(401, "Неверный пароль");
+            const token = jwt.sign(
+                { id: user.id, username: user.username },
+                JWT_SECRET,
+                { expiresIn: '1h' }
+            );
 
-        const token = jwt.sign(
-            { id: user.id, username: user.username },
-            JWT_SECRET,
-            { expiresIn: '1h' }
-        );
-
-        return { token: token, username: user.username, id: user.id };
+            return response.json({ token: token, username: user.username, id: user.id });
+        } catch (error) {
+            console.error('Ошибка при входе пользователя: ', error);
+            return response.status(500).json({ message: 'Произошла ошибка при входе.' });
+        }
     }
 
     @Get('/confirm/:token')
     async confirm(@Param('token') token: string, @Res() response: Response) {
-        const user = await UserRepository.findOne({ where: { token: token } });
+        try {
+            const user = await UserRepository.findOne({ where: { token: token } });
 
-        if (!user) {
-            throw new NotFoundError('Пользователь с указанным токеном не найден.');
+            if (!user) {
+                return response.status(404).json({ message: 'Пользователь с указанным токеном не найден.' });
+            }
+
+            if (user.isConfirmed) {
+                return response.status(400).json({ message: 'Пользователь уже подтвержден.' });
+            }
+
+            user.isConfirmed = true;
+            user.token = null;
+            await UserRepository.save(user);
+
+            return response.redirect(`http://${process.env.FRONT_ID}/login`);
+        } catch (error) {
+            console.error('Ошибка при подтверждении пользователя: ', error);
+            return response.status(500).json({ message: 'Произошла ошибка при подтверждении пользователя.' });
         }
-
-        if (user.isConfirmed) {
-            throw new BadRequestError('Пользователь уже подтвержден.');
-        }
-
-        user.isConfirmed = true;
-        user.token = null;
-        await UserRepository.save(user);
-
-        response.redirect(`http://${process.env.FRONT_ID}/login`);
     }
 }
