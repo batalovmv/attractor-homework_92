@@ -4,9 +4,8 @@ import { Middleware, ExpressErrorMiddlewareInterface } from 'routing-controllers
 export class CustomErrorHandler implements ExpressErrorMiddlewareInterface {
     error(error: any, request: any, response: any, next: (err?: any) => any) {
         // обработка ошибок
-        if (response.headersSent) {
-            return next(error);
-        }
+        
+    
         if (!response.headersSent) {
             response.status(error.httpCode || 500);
             response.json({
@@ -14,7 +13,7 @@ export class CustomErrorHandler implements ExpressErrorMiddlewareInterface {
                 message: error.message,
             });
         } else {
-            next(error);
+          return  next(error);
         }
     }
 }

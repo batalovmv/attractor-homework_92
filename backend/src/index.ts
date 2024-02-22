@@ -18,8 +18,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 
 
-app.use((req, res, next) => {
+app.use((err,req, res, next) => {
   console.log(`Incoming request: ${req.method} ${req.path}`);
+    if (res.headersSent) {
+        // Если заголовки уже отправлены, делегируем Express обработку ошибки
+        return next(err);
+    }
   next();
 });
 
