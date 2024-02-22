@@ -68,19 +68,17 @@ export class UserController {
         const user = await UserRepository.findOne({ where: { token: token } });
 
         if (!user) {
-            throw new NotFoundError('Пользователь с указанным токеном не найден.').message;
+            throw new NotFoundError('Пользователь с указанным токеном не найден.');
         }
 
         if (user.isConfirmed) {
-            throw new BadRequestError('Пользователь уже подтверждён.').message;
+            throw new BadRequestError('Пользователь уже подтверждён.');
         }
 
-        
         user.isConfirmed = true;
-        user.token = null; 
+        user.token = null;
         await UserRepository.save(user);
 
-       
         response.redirect(`http://${process.env.FRONT_ID}/login?confirmed=true`);
     }
 }

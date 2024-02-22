@@ -78,10 +78,10 @@ export class PostController {
     @UseBefore(MulterUpload)
     @Authorized()
     async create(@Req() req: any, @CurrentUser({ required: true }) user: User, @Res() response: any) {
+        if (!user) throw new HttpError(401, "Unauthorized");
+
         try {
             const postData: CreatePostDto = req.body;
-
-            if (!user) throw new HttpError(401, "Unauthorized");
 
             if (req.file) {
                 postData.image = req.file.filename;
@@ -92,29 +92,24 @@ export class PostController {
                 user: user
             });
             await PostRepository.save(newPost);
-
-            return response.status(201).json(newPost);
+            response.status(201).json(newPost);
         } catch (error) {
-            // Catch any error that might have occurred during the creation of the post
             console.error('An error occurred:', error);
             response.status(500).json({ message: 'An error occurred while creating the post.' });
         }
     }
 
-  @Delete('/:id')
-  @Authorized() 
-  async delete(@Param('id') postId: number, @CurrentUser({ required: true }) user: User, @Res() response: any) {
-    if (!user) throw new HttpError(401, "Unauthorized");
+    @Delete('/:id')
+    @Authorized()
+    async delete(@Param('id') commentId: number, @CurrentUser({ required: true }) user: User, @Res() response: any) {
+        if (!user) throw new HttpError(401, "Unauthorized");
 
-    // Загрузка поста с его связями
-    const post = await PostRepository.findOne({ where: { id: postId }, relations: ["user", "comments"] });
-    if (!post) throw new HttpError(404, "Post not found");
-    if (post.user.id !== user.id) throw new HttpError(403, "Forbidden");
-    await CommentRepository.delete({ post: { id: post.id } });
-    // Удаление поста с использованием метода remove
-    await PostRepository.remove(post);
+        const comment = await CommentRepository.findOne({ where: { id: commentId }, relations: ["user"] });
+        if (!comment) throw new HttpError(404, "Comment not found");
+        if (comment.user.id !== user.id) throw new HttpError(403, "Forbidden");
 
-    return response.status(200).send({ message: "Post successfully deleted" });
-  }
+        await CommentRepository.delete(comment.id);
+        response.status(200).send({ message: "Post successfully deleted" });
+    }
 
 }
