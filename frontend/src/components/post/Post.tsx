@@ -32,7 +32,7 @@ const StyledLink = styled(Link)(() => ({
 
 const Post = ({ post, onDelete }: Props) => {
     const dispatch = useAppDispatch();
-    const { loading, error } = useAppSelector((state: RootState) => state.likes);
+    const { loading} = useAppSelector((state: RootState) => state.likes);
     let cardImage: string | undefined = undefined;
     const currentUser = useAppSelector(
         (state: RootState) => state.user.userInfo?.username
