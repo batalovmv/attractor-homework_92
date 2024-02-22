@@ -35,18 +35,22 @@ export class UserController {
             await sendConfirmationEmail(newUser.email, newUser.token);
 
             return response.status(201).json({ message: 'Пожалуйста, проверьте вашу почту для подтверждения регистрации.' });
-        } catch (error: unknown) {
+        } catch (error) {
             console.error('Ошибка при создании пользователя или отправке письма: ', error);
 
-            // Проверяем, является ли error объектом и содержит ли он свойство httpCode
-            if (typeof error === 'object' && error !== null && 'httpCode' in error) {
-                // Теперь мы можем безопасно обратиться к httpCode, предполагая что error имеет тип any
-                const err = error as { httpCode: number; message: string };
-                const statusCode = err.httpCode || 500;
-                const message = statusCode === 500 ? 'Ошибка при регистрации.' : err.message;
-                return response.status(statusCode).json({ message: message });
+            if (response.headersSent) {
+                // Если заголовки уже отправлены, мы не можем отправить новый ответ.
+                // В этом случае, просто завершаем запрос.
+                return;
+            }
+
+            // Обработка ошибок
+            if (error instanceof HttpError) {
+                // Если ошибка является экземпляром HttpError,
+                // используем статус и сообщение ошибки для ответа.
+                return response.status(error.httpCode).json({ message: error.message });
             } else {
-                // Для всех других типов ошибок возвращаем 500 Internal Server Error
+                // Для неизвестных ошибок отправляем 500 Internal Server Error
                 return response.status(500).json({ message: 'Ошибка при регистрации.' });
             }
         }

@@ -34,16 +34,6 @@ AppDataSource.initialize().then(async () => {
     });
 
 
-    app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-        console.error(`Error encountered: ${err.message}`);
-
-        if (!res.headersSent) {
-            res.status(500).json({ error: err.message });
-        } else {
-            next(err); 
-        }
-    });
-
     app.use((err:any, req:any, res:any, next:any) => {
         // Проверяем, является ли ошибка экземпляром HttpError
         if (err instanceof HttpError) {
