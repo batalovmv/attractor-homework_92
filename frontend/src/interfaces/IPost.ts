@@ -10,5 +10,6 @@ export interface IPost {
   comments: IComment[];
   user: IUser;
   commentCount:number;
-    likeCount:number
+    likeCount:number;
+    currentUserLiked:boolean
 }

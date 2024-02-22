@@ -15,8 +15,9 @@ import { apiURL } from "../../constants";
 import { Link } from "react-router-dom";
 import { DeleteForever, ThumbUpAlt } from "@mui/icons-material";
 import { MouseEventHandler } from "react";
-import { useAppSelector } from "../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { RootState } from "../../store";
+import { likePost, unlikePost } from "../../features/like/likeSlice";
 
 interface Props {
     post: IPost;
@@ -30,6 +31,8 @@ const StyledLink = styled(Link)(() => ({
 }));
 
 const Post = ({ post, onDelete }: Props) => {
+    const dispatch = useAppDispatch();
+    const { loading, error } = useAppSelector((state: RootState) => state.likes);
     let cardImage: string | undefined = undefined;
     const currentUser = useAppSelector(
         (state: RootState) => state.user.userInfo?.username
@@ -38,6 +41,15 @@ const Post = ({ post, onDelete }: Props) => {
     if (post.image) {
         cardImage = apiURL + "/uploads/post_photos/" + post.image;
     }
+    const handleLikeClick = async () => {
+        if (loading) return; 
+
+        if (post.currentUserLiked) {
+            await dispatch(unlikePost(post.id));
+        } else {
+            await dispatch(likePost(post.id));
+        }
+    };
 
     return (
         <Box mb={4}>
@@ -72,7 +84,13 @@ const Post = ({ post, onDelete }: Props) => {
                                 {post.title}
                             </Typography>
                             <Box display={"flex"} alignItems={"center"} mt={2}>
-                                <ThumbUpAlt sx={{ mr: 1 }} />
+                                <IconButton
+                                    onClick={handleLikeClick}
+                                    sx={{ color: post.currentUserLiked ? 'red' : 'inherit' }}
+                                    disabled={loading}
+                                >
+                                    <ThumbUpAlt />
+                                </IconButton>
                                 <Typography variant="body2" sx={{ mr: 2 }}>
                                     {post.likeCount || 0} Likes
                                 </Typography>
