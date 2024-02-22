@@ -11,17 +11,19 @@ import { CommentRepository } from "../repositories/blogComment.repository";
 export class PostController {
 
     @Get('/')
-    async getAllPosts() {
+    async getAllPosts(@CurrentUser({ required: true }) user: User) {
         const posts = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
             .leftJoin("post.comments", "comments")
             .leftJoin("post.likes", "likes") // Добавляем левое соединение с таблицей likes
+            .leftJoinAndSelect("likes.user", "likeUser", "likeUser.id = :currentUserId", { currentUserId: user.id }) // Проверяем лайк текущего пользователя
             .select([
                 "post",
                 "user.id",
                 "user.username",
-                "COUNT(DISTINCT comments.id) AS commentCount", // Используйте DISTINCT, чтобы избежать дублирования при подсчете
-                "COUNT(DISTINCT likes.id) AS likeCount" // Подсчет количества лайков
+                "COUNT(DISTINCT comments.id) AS commentCount",
+                "COUNT(DISTINCT likes.id) AS likeCount",
+                "COUNT(DISTINCT likeUser.id) AS currentUserLiked" // Подсчет лайка текущего пользователя
             ])
             .groupBy("post.id")
             .addGroupBy("user.id")
@@ -45,17 +47,19 @@ export class PostController {
     }
 
     @Get('/:id')
-    async getPost(@Param('id') postId: number) {
+    async getPost(@Param('id') postId: number, @CurrentUser({ required: true }) user: User) {
         const post = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
             .leftJoin("post.comments", "comments")
-            .leftJoin("post.likes", "likes") // Добавляем левое соединение с таблицей likes
+            .leftJoin("post.likes", "likes") 
+            .leftJoinAndSelect("likes.user", "likeUser", "likeUser.id = :currentUserId", { currentUserId: user.id })
             .select([
                 "post",
                 "user.id",
                 "user.username",
                 "COUNT(DISTINCT comments.id) AS commentCount", // Используйте DISTINCT для подсчета комментариев
-                "COUNT(DISTINCT likes.id) AS likeCount" // Подсчет количества лайков
+                "COUNT(DISTINCT likes.id) AS likeCount" ,
+                "COUNT(DISTINCT likeUser.id) AS currentUserLiked"
             ])
             .where("post.id = :id", { id: postId })
             .groupBy("post.id")
@@ -76,7 +80,8 @@ export class PostController {
                 username: post.user_username,
             },
             commentCount: post.commentCount,
-            likeCount: post.likeCount // Включаем количество лайков в ответ
+            likeCount: post.likeCount ,
+            currentUserLiked: post.currentUserLiked > 0
         };
     }
 
