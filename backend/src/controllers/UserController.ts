@@ -1,4 +1,4 @@
-import { BadRequestError, Body, Get, HttpError, JsonController, NotFoundError, Param, Post, Res } from "routing-controllers";
+import { BadRequestError, Body, Get, HttpError, InternalServerError, JsonController, NotFoundError, Param, Post, Res } from "routing-controllers";
 import { CreateUserDto } from "../dto/createUserDto";
 import { LoginUserDto } from "../dto/loginUserDto";
 import { nanoid } from 'nanoid';
@@ -17,14 +17,16 @@ const JWT_SECRET: string = process.env.JWT_SECRET;
 @JsonController('/users')
 export class UserController {
     @Post('/register')
-    async create(@Body() userData: CreateUserDto, @Res() response: Response) {
+    async create(@Body() userData: CreateUserDto) {
         try {
             const existingUser = await UserRepository.findOne({ where: { email: userData.email } });
             if (existingUser) {
-                return response.status(400).json({ message: 'Пользователь с таким email уже существует.' });
+                throw new BadRequestError('Пользователь с таким email уже существует.');
             }
+
             const hashedPassword = await bcrypt.hash(userData.password, 10);
             const newUser = new User();
+            // Заполняем данные пользователя...
             newUser.username = userData.username;
             newUser.password = hashedPassword;
             newUser.email = userData.email;
@@ -34,24 +36,21 @@ export class UserController {
             await UserRepository.save(newUser);
             await sendConfirmationEmail(newUser.email, newUser.token);
 
-            return response.status(201).json({ message: 'Пожалуйста, проверьте вашу почту для подтверждения регистрации.' });
+            // Можно возвращать объект, и он будет автоматически сериализован в JSON
+            return {
+                message: 'Пожалуйста, проверьте вашу почту для подтверждения регистрации.'
+            };
+
         } catch (error) {
             console.error('Ошибка при создании пользователя или отправке письма: ', error);
 
-            if (response.headersSent) {
-                // Если заголовки уже отправлены, мы не можем отправить новый ответ.
-                // В этом случае, просто завершаем запрос.
-                return;
-            }
-
-            // Обработка ошибок
+            // Вместо работы с response напрямую, бросаем исключения
             if (error instanceof HttpError) {
-                // Если ошибка является экземпляром HttpError,
-                // используем статус и сообщение ошибки для ответа.
-                return response.status(error.httpCode).json({ message: error.message });
+                // Перебрасываем исключение дальше
+                throw error;
             } else {
-                // Для неизвестных ошибок отправляем 500 Internal Server Error
-                return response.status(500).json({ message: 'Ошибка при регистрации.' });
+                // Для неизвестных ошибок бросаем 500 Internal Server Error
+                throw new InternalServerError('Ошибка при регистрации.');
             }
         }
     }
