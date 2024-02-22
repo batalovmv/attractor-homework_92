@@ -74,26 +74,32 @@ export class PostController {
     };
   }
 
-  @Post('/')
-  @UseBefore(MulterUpload)
-  @Authorized()
-  async create(@Req() req: any, @CurrentUser({ required: true }) user: User) {
-    const postData: CreatePostDto = req.body;
+    @Post('/')
+    @UseBefore(MulterUpload)
+    @Authorized()
+    async create(@Req() req: any, @CurrentUser({ required: true }) user: User, @Res() response: any) {
+        try {
+            const postData: CreatePostDto = req.body;
 
-    if (!user) throw new HttpError(401, "Unauthorized");
+            if (!user) throw new HttpError(401, "Unauthorized");
 
-    if (req.file) {
-      postData.image = req.file.filename;
+            if (req.file) {
+                postData.image = req.file.filename;
+            }
+
+            const newPost = PostRepository.create({
+                ...postData,
+                user: user
+            });
+            await PostRepository.save(newPost);
+
+            return response.status(201).json(newPost);
+        } catch (error) {
+            // Catch any error that might have occurred during the creation of the post
+            console.error('An error occurred:', error);
+            response.status(500).json({ message: 'An error occurred while creating the post.' });
+        }
     }
-
-    const newPost = PostRepository.create({
-      ...postData,
-      user: user
-    });
-    await PostRepository.save(newPost);
-
-    return newPost;
-  }
 
   @Delete('/:id')
   @Authorized() 

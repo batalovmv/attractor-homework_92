@@ -16,30 +16,29 @@ const JWT_SECRET: string = process.env.JWT_SECRET;
 @JsonController('/users')
 export class UserController {
     @Post('/register')
-    async create(@Body() userData: CreateUserDto) {
-        const existingUser = await UserRepository.findOne({ where: { email: userData.email } });
-        if (existingUser) {
-            throw new HttpError(400, 'Пользователь с таким email уже существует.');
-        }
-        const hashedPassword = await bcrypt.hash(userData.password, 10);
-        const newUser = new User();
-        newUser.username = userData.username;
-        newUser.password = hashedPassword;
-        newUser.email = userData.email;
-        newUser.isConfirmed = false; 
-        newUser.token = nanoid();
-
+    async create(@Body() userData: CreateUserDto, @Res() response: any) {
         try {
+            const existingUser = await UserRepository.findOne({ where: { email: userData.email } });
+            if (existingUser) {
+                throw new HttpError(400, 'Пользователь с таким email уже существует.');
+            }
+            const hashedPassword = await bcrypt.hash(userData.password, 10);
+            const newUser = new User();
+            newUser.username = userData.username;
+            newUser.password = hashedPassword;
+            newUser.email = userData.email;
+            newUser.isConfirmed = false;
+            newUser.token = nanoid();
+
             await UserRepository.save(newUser);
             await sendConfirmationEmail(newUser.email, newUser.token);
-            // Не выдаем токен сразу после регистрации
-        } catch (error) {
-            console.error('Ошибка при создании пользователя или отправке письма: ', error);
-            throw error;
-        }
 
-        // Возвращаем сообщение о том, что требуется подтверждение
-        return { message: 'Пожалуйста, проверьте вашу почту для подтверждения регистрации.' };
+            return response.status(201).json({ message: 'Пожалуйста, проверьте вашу почту для подтверждения регистрации.' });
+        } catch (error) {
+            // Catch the error if the user creation or email sending fails
+            console.error('Ошибка при создании пользователя или отправке письма: ', error);
+            return response.status(500).json({ message: 'Ошибка при регистрации.' });
+        }
     }
 
   @Post('/login')
