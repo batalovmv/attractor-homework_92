@@ -105,17 +105,20 @@ export class PostController {
 
     @Delete('/:id')
     @Authorized()
-    async delete(@Param('id') commentId: number, @CurrentUser({ required: true }) user: User) {
+    async delete(@Param('id') postId: number, @CurrentUser({ required: true }) user: User) {
         if (!user) throw new HttpError(401, "Unauthorized");
 
-        const comment = await CommentRepository.findOne({ where: { id: commentId }, relations: ["user"] });
-        if (!comment) throw new HttpError(404, "Comment not found");
-        if (comment.user.id !== user.id) throw new HttpError(403, "Forbidden");
+        const post = await PostRepository.findOne({
+            where: { id: postId },
+            relations: ["user"]
+        });
+        if (!post) throw new HttpError(404, "Post not found");
+        if (post.user.id !== user.id) throw new HttpError(403, "Forbidden");
 
-        await CommentRepository.delete(comment.id);
+        await PostRepository.delete(post.id);
 
-        // Возвращаем объект, который будет преобразован в HTTP-ответ со статусом 200
-        return { message: "Comment successfully deleted" };
+        
+        return { message: "Post successfully deleted" };
     }
 
 }
