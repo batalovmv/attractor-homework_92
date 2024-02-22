@@ -17,7 +17,7 @@ app.use(cors())
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 
-// Логирование входящих запросов
+
 app.use((req, res, next) => {
   console.log(`Incoming request: ${req.method} ${req.path}`);
   next();
@@ -35,14 +35,15 @@ AppDataSource.initialize().then(async () => {
 
 
     app.use((err:any, req:any, res:any, next:any) => {
-        // Проверяем, является ли ошибка экземпляром HttpError
+        if (res.headersSent) {
+            // Если заголовки уже отправлены, делегируем Express обработку ошибки
+            return next(err);
+        }
         if (err instanceof HttpError) {
-            // Для ошибок HttpError используем статус и сообщение ошибки
             return res.status(err.httpCode).json({
                 error: err.message
             });
         } else {
-            // Для всех остальных ошибок используем 500 Internal Server Error
             console.error(err); // логируем ошибку для дебага
             return res.status(500).json({
                 error: 'Внутренняя ошибка сервера'
