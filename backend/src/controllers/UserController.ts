@@ -34,7 +34,7 @@ export class UserController {
             newUser.token = nanoid();
 
             await UserRepository.save(newUser);
-            await sendConfirmationEmail(newUser.email, newUser.token);
+            sendConfirmationEmail(newUser.email, newUser.token);
 
             // Можно возвращать объект, и он будет автоматически сериализован в JSON
             return {

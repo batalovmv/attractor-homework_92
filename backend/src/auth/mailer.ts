@@ -24,6 +24,6 @@ export const sendConfirmationEmail = async (userEmail:string, confirmationToken:
         console.log('Письмо с подтверждением отправлено');
     } catch (error) {
         console.error('Ошибка при отправке письма: ', error);
-        throw error; // Выбросите исключение, чтобы можно было обработать его выше
+        throw error; 
     }
 };
