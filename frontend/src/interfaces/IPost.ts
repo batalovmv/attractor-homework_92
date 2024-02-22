@@ -9,4 +9,6 @@ export interface IPost {
   datetime: Date;
   comments: IComment[];
   user: IUser;
+  commentCount:number;
+    likeCount:number
 }

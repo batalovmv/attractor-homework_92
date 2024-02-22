@@ -2,6 +2,7 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Post } from "./post.entity";
 import { BlogComment } from "./blogComment.entity";
 import { Exclude } from 'class-transformer';
+import { Like } from "./like.entity";
 
 @Entity()
 export class User {
@@ -41,4 +42,7 @@ export class User {
 
   @OneToMany(() => BlogComment, comment => comment.user)
   comments!: BlogComment[];
+
+  @OneToMany(() => Like, like => like.user)
+  likes!: Like[];  
 }

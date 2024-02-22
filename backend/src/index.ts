@@ -11,6 +11,7 @@ import { PostController } from './controllers/PostController';
 import { authorizationChecker } from './auth/authChecker';
 import { currentUserChecker } from './auth/currentUserChecker';
 import { CustomErrorHandler } from './middleware/CustomErrorHandler';
+import { LikeController } from './controllers/LikeController';
 
 const app = express();
 app.use(cors())
@@ -31,7 +32,7 @@ AppDataSource.initialize().then(async () => {
     useExpressServer(app, {
         classTransformer: true,
         validation: true,
-        controllers: [BlogCommentController, PostController, UserController],
+        controllers: [BlogCommentController, PostController, UserController,LikeController],
         middlewares: [CustomErrorHandler],
         authorizationChecker: authorizationChecker,
         currentUserChecker: currentUserChecker,
