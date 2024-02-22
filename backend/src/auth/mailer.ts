@@ -16,7 +16,7 @@ export const sendConfirmationEmail = async (userEmail:string, confirmationToken:
         from: 'batalov94@gmail.com', // замените на ваш реальный email
         to: userEmail,
         subject: 'Подтверждение регистрации',
-        text: `Для подтверждения регистрации перейдите по ссылке: https://${process.env.FRONT_ID}/users/confirm/${confirmationToken}`,
+        text: `Для подтверждения регистрации перейдите по ссылке: http://${process.env.FRONT_ID}:3006/users/confirm/${confirmationToken}`,
     };
 
     try {
