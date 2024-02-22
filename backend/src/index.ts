@@ -44,7 +44,7 @@ AppDataSource.initialize().then(async () => {
         }
     });
 
-    app.use((err, req, res, next) => {
+    app.use((err:any, req:any, res:any, next:any) => {
         // Проверяем, является ли ошибка экземпляром HttpError
         if (err instanceof HttpError) {
             // Для ошибок HttpError используем статус и сообщение ошибки
