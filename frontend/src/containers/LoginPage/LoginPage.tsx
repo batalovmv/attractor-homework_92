@@ -1,11 +1,9 @@
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { ChangeEvent, FormEvent, useState } from "react";
-import { Alert, Avatar, Box, Button, Container, Grid, Typography, Link, InputAdornment, IconButton, TextField } from "@mui/material";
+import { Alert, Avatar, Box, Button, Container, Grid, Typography, Link} from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import FormElement from "../../components/Form/FormElement";
 import { loginUser } from "../../features/user/userSlice";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
 import InputField from "../../components/Form/FormElement";
 
 

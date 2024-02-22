@@ -1,9 +1,8 @@
 import React, { ChangeEvent, FormEvent, useState } from "react";
-import { Alert, Avatar, Box, Button, Grid, Link, Stack, Typography } from "@mui/material";
+import {  Avatar, Box, Button, Grid, Link, Typography } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { Link as RouterLink } from "react-router-dom";
 import InputField from "../../components/Form/FormElement";
-import { useAppSelector } from "../../store/hooks";
 
 interface RegistrationFormProps {
     username: string;

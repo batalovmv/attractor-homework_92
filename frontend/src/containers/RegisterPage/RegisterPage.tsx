@@ -1,6 +1,6 @@
-import { Alert, Box, Container,  Snackbar, Stack } from "@mui/material";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { Alert, Box, Container,  Snackbar } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "../../store/hooks";
 import { registerUser } from "../../features/user/userSlice";
 import React from "react";
 import RegistrationForm from "./RegistrationForm";
