@@ -10,6 +10,7 @@ import { BlogCommentController } from './controllers/BlogCommentController';
 import { PostController } from './controllers/PostController';
 import { authorizationChecker } from './auth/authChecker';
 import { currentUserChecker } from './auth/currentUserChecker';
+import { CustomErrorHandler } from './middleware/CustomErrorHandler';
 
 const app = express();
 app.use(cors())
@@ -27,6 +28,7 @@ AppDataSource.initialize().then(async () => {
         classTransformer: true,
         validation: true,
         controllers: [BlogCommentController, PostController, UserController],
+        middlewares: [CustomErrorHandler],
         authorizationChecker: authorizationChecker,
         currentUserChecker: currentUserChecker,
     });

@@ -33,11 +33,11 @@ export class UserController {
             await UserRepository.save(newUser);
             await sendConfirmationEmail(newUser.email, newUser.token);
 
-            return response.status(201).json({ message: 'Пожалуйста, проверьте вашу почту для подтверждения регистрации.' });
+            response.status(201).json({ message: 'Пожалуйста, проверьте вашу почту для подтверждения регистрации.' });
         } catch (error) {
             // Catch the error if the user creation or email sending fails
             console.error('Ошибка при создании пользователя или отправке письма: ', error);
-            return response.status(500).json({ message: 'Ошибка при регистрации.' });
+            response.status(500).json({ message: 'Ошибка при регистрации.' });
         }
     }
 
