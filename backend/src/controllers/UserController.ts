@@ -10,13 +10,14 @@ import { sendConfirmationEmail } from "../auth/mailer";
 import { Response } from 'express';
 
 if (!process.env.JWT_SECRET) {
-    throw new Error('JWT_SECRET is not defined');
+    throw new Error('Переменная среды JWT_SECRET не определена');
 }
 const JWT_SECRET: string = process.env.JWT_SECRET;
+
 @JsonController('/users')
 export class UserController {
     @Post('/register')
-    async create(@Body() userData: CreateUserDto, @Res() response: any) {
+    async create(@Body() userData: CreateUserDto, @Res() response: Response) {
         try {
             const existingUser = await UserRepository.findOne({ where: { email: userData.email } });
             if (existingUser) {
@@ -33,36 +34,36 @@ export class UserController {
             await UserRepository.save(newUser);
             await sendConfirmationEmail(newUser.email, newUser.token);
 
-            response.status(201).json({ message: 'Пожалуйста, проверьте вашу почту для подтверждения регистрации.' });
+           return response.status(201).json({ message: 'Пожалуйста, проверьте вашу почту для подтверждения регистрации.' });
         } catch (error) {
-            // Catch the error if the user creation or email sending fails
             console.error('Ошибка при создании пользователя или отправке письма: ', error);
-            response.status(500).json({ message: 'Ошибка при регистрации.' });
+           return response.status(500).json({ message: 'Ошибка при регистрации.' });
         }
     }
 
-  @Post('/login')
-  async login(@Body() loginData: LoginUserDto) {
-    const user = await UserRepository.findOne({
-      where: {
-        username: loginData.username,
-      }
-    });
+    @Post('/login')
+    async login(@Body() loginData: LoginUserDto) {
+        const user = await UserRepository.findOne({
+            where: {
+                username: loginData.username,
+            }
+        });
 
-    if (!user) throw new HttpError(401, "User not found");
+        if (!user) throw new HttpError(401, "Пользователь не найден");
 
-    const isPasswordMatch = await bcrypt.compare(loginData.password, user.password);
+        const isPasswordMatch = await bcrypt.compare(loginData.password, user.password);
 
-    if (!isPasswordMatch) throw new HttpError(401, "Unauthorized");
+        if (!isPasswordMatch) throw new HttpError(401, "Неверный пароль");
 
-      const token = jwt.sign(
-          { id: user.id, username: user.username },
-          JWT_SECRET,
-          { expiresIn: '1h' } 
-      );
+        const token = jwt.sign(
+            { id: user.id, username: user.username },
+            JWT_SECRET,
+            { expiresIn: '1h' }
+        );
 
-      return { token: token, username: user.username, id: user.id };
-  }
+        return { token: token, username: user.username, id: user.id };
+    }
+
     @Get('/confirm/:token')
     async confirm(@Param('token') token: string, @Res() response: Response) {
         const user = await UserRepository.findOne({ where: { token: token } });
@@ -72,13 +73,13 @@ export class UserController {
         }
 
         if (user.isConfirmed) {
-            throw new BadRequestError('Пользователь уже подтверждён.');
+            throw new BadRequestError('Пользователь уже подтвержден.');
         }
 
         user.isConfirmed = true;
         user.token = null;
         await UserRepository.save(user);
 
-        response.redirect(`http://${process.env.FRONT_ID}/login?confirmed=true`);
+        response.redirect(`http://${process.env.FRONT_ID}/login`);
     }
 }
