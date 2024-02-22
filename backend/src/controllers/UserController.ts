@@ -1,4 +1,4 @@
-import { BadRequestError, Body, Get, HttpError, InternalServerError, JsonController, NotFoundError, Param, Post, Res } from "routing-controllers";
+import { BadRequestError, Body, Get, HttpCode, HttpError, InternalServerError, JsonController, NotFoundError, Param, Post, Redirect, Res, UnauthorizedError } from "routing-controllers";
 import { CreateUserDto } from "../dto/createUserDto";
 import { LoginUserDto } from "../dto/loginUserDto";
 import { nanoid } from 'nanoid';
@@ -56,58 +56,54 @@ export class UserController {
     }
 
     @Post('/login')
-    async login(@Body() loginData: LoginUserDto, @Res() response: Response) {
-        try {
-            const user = await UserRepository.findOne({
-                where: {
-                    username: loginData.username,
-                }
-            });
-
-            if (!user) {
-                return response.status(401).json({ message: "Пользователь не найден" });
+    @HttpCode(200)
+    async login(@Body() loginData: LoginUserDto) {
+        const user = await UserRepository.findOne({
+            where: {
+                username: loginData.username,
             }
+        });
 
-            const isPasswordMatch = await bcrypt.compare(loginData.password, user.password);
-
-            if (!isPasswordMatch) {
-                return response.status(401).json({ message: "Неверный пароль" });
-            }
-
-            const token = jwt.sign(
-                { id: user.id, username: user.username },
-                JWT_SECRET,
-                { expiresIn: '1h' }
-            );
-
-            return response.json({ token: token, username: user.username, id: user.id });
-        } catch (error) {
-            console.error('Ошибка при входе пользователя: ', error);
-            return response.status(500).json({ message: 'Произошла ошибка при входе.' });
+        if (!user) {
+            throw new UnauthorizedError("Пользователь не найден");
         }
+
+        const isPasswordMatch = await bcrypt.compare(loginData.password, user.password);
+
+        if (!isPasswordMatch) {
+            throw new UnauthorizedError("Неверный пароль");
+        }
+
+        const token = jwt.sign(
+            { id: user.id, username: user.username },
+            JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
+        return { token: token, username: user.username, id: user.id };
     }
 
     @Get('/confirm/:token')
-    async confirm(@Param('token') token: string, @Res() response: Response) {
-        try {
-            const user = await UserRepository.findOne({ where: { token: token } });
+    @HttpCode(200)
+    @Redirect(`http://${process.env.FRONT_ID}/login`)
+    async confirm(@Param('token') token: string) {
+        const user = await UserRepository.findOne({ where: { token: token } });
 
-            if (!user) {
-                return response.status(404).json({ message: 'Пользователь с указанным токеном не найден.' });
-            }
-
-            if (user.isConfirmed) {
-                return response.status(400).json({ message: 'Пользователь уже подтвержден.' });
-            }
-
-            user.isConfirmed = true;
-            user.token = null;
-            await UserRepository.save(user);
-
-            return response.redirect(`http://${process.env.FRONT_ID}/login`);
-        } catch (error) {
-            console.error('Ошибка при подтверждении пользователя: ', error);
-            return response.status(500).json({ message: 'Произошла ошибка при подтверждении пользователя.' });
+        if (!user) {
+            throw new NotFoundError('Пользователь с указанным токеном не найден.');
         }
+
+        if (user.isConfirmed) {
+            throw new BadRequestError('Пользователь уже подтвержден.');
+        }
+
+        user.isConfirmed = true;
+        user.token = null;
+        await UserRepository.save(user);
+
+        // В этом случае редирект будет выполнен автоматически благодаря декоратору @Redirect
+        // Если URL редиректа должен быть динамическим, вместо декоратора @Redirect
+        // можно вернуть объект с url, который будет обработан на клиенте
+        return {};
     }
 }
