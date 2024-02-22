@@ -27,13 +27,13 @@ const PostsPage = () => {
           {error.message}
         </Typography>
       )}
-      {posts.map((post) => (
-        <Post
-          key={post.id}
-          onDelete={() => deleteHandler(post.id)}
-          post={post}
-        />
-      ))}
+          {Array.isArray(posts) && posts.map((post) => (
+              <Post
+                  key={post.id}
+                  onDelete={() => deleteHandler(post.id)}
+                  post={post}
+              />
+          ))}
     </Container>
   );
 };
