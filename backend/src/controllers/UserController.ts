@@ -17,6 +17,10 @@ const JWT_SECRET: string = process.env.JWT_SECRET;
 export class UserController {
     @Post('/register')
     async create(@Body() userData: CreateUserDto) {
+        const existingUser = await UserRepository.findOne({ where: { email: userData.email } });
+        if (existingUser) {
+            throw new HttpError(400, 'Пользователь с таким email уже существует.');
+        }
         const hashedPassword = await bcrypt.hash(userData.password, 10);
         const newUser = new User();
         newUser.username = userData.username;
