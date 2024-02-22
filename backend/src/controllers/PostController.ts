@@ -77,31 +77,29 @@ export class PostController {
     @Post('/')
     @UseBefore(MulterUpload)
     @Authorized()
-    async create(@Req() req: any, @CurrentUser({ required: true }) user: User, @Res() response: any) {
+    async create(@Req() req: any, @CurrentUser({ required: true }) user: User) {
         if (!user) throw new HttpError(401, "Unauthorized");
 
-        try {
-            const postData: CreatePostDto = req.body;
+        const postData: CreatePostDto = req.body;
 
-            if (req.file) {
-                postData.image = req.file.filename;
-            }
-
-            const newPost = PostRepository.create({
-                ...postData,
-                user: user
-            });
-            await PostRepository.save(newPost);
-            response.status(201).json(newPost);
-        } catch (error) {
-            console.error('An error occurred:', error);
-            response.status(500).json({ message: 'An error occurred while creating the post.' });
+        if (req.file) {
+            postData.image = req.file.filename;
         }
+
+        const newPost = PostRepository.create({
+            ...postData,
+            user: user
+        });
+
+        await PostRepository.save(newPost);
+
+        // Просто возвращаем новый пост, это будет автоматически преобразовано в HTTP 201
+        return newPost;
     }
 
     @Delete('/:id')
     @Authorized()
-    async delete(@Param('id') commentId: number, @CurrentUser({ required: true }) user: User, @Res() response: any) {
+    async delete(@Param('id') commentId: number, @CurrentUser({ required: true }) user: User) {
         if (!user) throw new HttpError(401, "Unauthorized");
 
         const comment = await CommentRepository.findOne({ where: { id: commentId }, relations: ["user"] });
@@ -109,7 +107,9 @@ export class PostController {
         if (comment.user.id !== user.id) throw new HttpError(403, "Forbidden");
 
         await CommentRepository.delete(comment.id);
-        response.status(200).send({ message: "Post successfully deleted" });
+
+        // Возвращаем объект, который будет преобразован в HTTP-ответ со статусом 200
+        return { message: "Comment successfully deleted" };
     }
 
 }
