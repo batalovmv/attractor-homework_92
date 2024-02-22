@@ -1,49 +1,69 @@
-import { TextField } from "@mui/material";
-import { ChangeEventHandler, HTMLInputTypeAttribute } from "react";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { IconButton, InputAdornment, TextField } from "@mui/material";
 
-interface Props {
+
+interface InputFieldProps {
     label: string;
-    value: string;
-    onChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
+    type?: 'text' | 'password' | 'email';
     name: string;
-    error?: string;
-    type?: HTMLInputTypeAttribute;
-    multiline?: boolean;
-    autoFocus?: boolean;
+    value: string;
+    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
     required?: boolean;
+    autoFocus?: boolean;
+    error?: boolean;
     helperText?: string;
+    showPassword?: boolean;
+    togglePasswordVisibility?: () => void;
 }
 
-const FormElement = ({
+
+const InputField: React.FC<InputFieldProps> = ({
     label,
+    type = 'text',
     name,
-    onChange,
     value,
-    error,
-    multiline,
-    type,
-    autoFocus,
-    required,
-    helperText,
-}: Props) => {
+    onChange,
+    required = false,
+    autoFocus = false,
+    error = false,
+    helperText = '',
+    showPassword = false,
+    togglePasswordVisibility,
+}) => {
     return (
         <TextField
             margin="normal"
+            required={required}
             fullWidth
-            id={name}
             label={label}
             name={name}
+            id={name}
             autoComplete={name}
             autoFocus={autoFocus}
+            error={error}
+            helperText={helperText}
             value={value}
             onChange={onChange}
-            error={!!error}
-            helperText={helperText}
-            type={type}
-            multiline={multiline}
-            required={required}
+            type={type === 'password' && !showPassword ? 'password' : 'text'}
+            InputProps={
+                type === 'password'
+                    ? {
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton
+                                    aria-label="toggle password visibility"
+                                    onClick={togglePasswordVisibility}
+                                    edge="end"
+                                >
+                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                </IconButton>
+                            </InputAdornment>
+                        ),
+                    }
+                    : undefined
+            }
         />
     );
 };
 
-export default FormElement;
+export default InputField;

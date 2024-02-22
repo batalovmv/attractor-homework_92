@@ -104,7 +104,7 @@ export class PostController {
     const post = await PostRepository.findOne({ where: { id: postId }, relations: ["user", "comments"] });
     if (!post) throw new HttpError(404, "Post not found");
     if (post.user.id !== user.id) throw new HttpError(403, "Forbidden");
-    await CommentRepository.delete({ post: post });
+    await CommentRepository.delete({ post: { id: post.id } });
     // Удаление поста с использованием метода remove
     await PostRepository.remove(post);
 

@@ -10,11 +10,13 @@ interface userState {
     loading: boolean;
     registerError: null | string | userResponseValidateError;
     loginError: null | string;
+    emailSent: boolean,
 }
 
 type userRequest = {
     username: string;
     password: string;
+    email?:string;
 };
 
 type userResponseError = {
@@ -76,6 +78,8 @@ export const registerUser = createAsyncThunk<
     }
 });
 
+
+
 export const loginUser = createAsyncThunk<
     IUser,
     userRequest,
@@ -105,6 +109,7 @@ const initialState: userState = {
     registerError: null,
     loginError: null,
     loading: false,
+    emailSent: false,
 };
 
 const userSlice = createSlice({
@@ -129,7 +134,7 @@ const userSlice = createSlice({
                 state.userInfo = { ...action.payload };
                 state.loading = false;
                 state.registerError = null;
-                saveToLocalStorage('userInfo', action.payload);
+                state.emailSent = true;
             })
             .addCase(registerUser.rejected, (state, action) => {
                 state.loading = false;

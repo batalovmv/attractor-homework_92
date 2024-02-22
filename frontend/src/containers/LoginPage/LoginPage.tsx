@@ -1,10 +1,12 @@
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { ChangeEvent, FormEvent, useState } from "react";
-import { Alert, Avatar, Box, Button, Container, Grid, Typography, Link } from "@mui/material";
+import { Alert, Avatar, Box, Button, Container, Grid, Typography, Link, InputAdornment, IconButton, TextField } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import FormElement from "../../components/Form/FormElement";
 import { loginUser } from "../../features/user/userSlice";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import InputField from "../../components/Form/FormElement";
 
 
 interface LoginState {
@@ -16,7 +18,7 @@ const LoginPage = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const error = useAppSelector((state) => state.user.loginError);
-
+    const [showPassword, setShowPassword] = useState(false);
     const [state, setState] = useState<LoginState>({
         username: "",
         password: "",
@@ -25,6 +27,10 @@ const LoginPage = () => {
     const inputChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setState((prevState) => ({ ...prevState, [name]: value }));
+    };
+    
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
     };
 
     const submitFormHandler = (e: FormEvent<HTMLFormElement>) => {
@@ -66,21 +72,24 @@ const LoginPage = () => {
                     onSubmit={submitFormHandler}
                     sx={{ mt: 1, width: "100%" }}
                 >
-                    <FormElement
-                        required
+                    <InputField
                         label="Login"
                         name="username"
                         value={state.username}
                         onChange={inputChangeHandler}
+                        autoFocus
+                        required
                     />
 
-                    <FormElement
-                        required
-                        name="password"
+                    <InputField
                         label="Password"
                         type="password"
+                        name="password"
                         value={state.password}
                         onChange={inputChangeHandler}
+                        required
+                        showPassword={showPassword}
+                        togglePasswordVisibility={togglePasswordVisibility}
                     />
 
                     <Button

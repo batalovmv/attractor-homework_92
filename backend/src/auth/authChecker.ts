@@ -25,6 +25,10 @@ export const authorizationChecker = async (action: Action, roles: string[]): Pro
         if (!user) {
             return false; // Не авторизован, так как пользователь не найден
         }
+        if (!user.isConfirmed) {
+            console.error('Аккаунт пользователя не подтвержден.');
+            return false; 
+        }
 
         // Если у вас есть логика проверки ролей, добавьте её здесь.
 
