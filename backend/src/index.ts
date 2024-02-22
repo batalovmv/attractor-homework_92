@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { useExpressServer } from 'routing-controllers';
+import { HttpError, useExpressServer } from 'routing-controllers';
 import express from 'express';
 import { AppDataSource } from './data-source';
 import { UserController } from './controllers/UserController';
@@ -41,6 +41,22 @@ AppDataSource.initialize().then(async () => {
             res.status(500).json({ error: err.message });
         } else {
             next(err); 
+        }
+    });
+
+    app.use((err, req, res, next) => {
+        // Проверяем, является ли ошибка экземпляром HttpError
+        if (err instanceof HttpError) {
+            // Для ошибок HttpError используем статус и сообщение ошибки
+            return res.status(err.httpCode).json({
+                error: err.message
+            });
+        } else {
+            // Для всех остальных ошибок используем 500 Internal Server Error
+            console.error(err); // логируем ошибку для дебага
+            return res.status(500).json({
+                error: 'Внутренняя ошибка сервера'
+            });
         }
     });
 
