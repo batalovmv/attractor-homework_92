@@ -13,7 +13,7 @@ export class PostController {
 
 
     @Get('/')
-    async getAllPosts(@CurrentUser() user?: User) {
+    async getAllPosts(@CurrentUser({ required: true }) user: User) {
         const currentUserId = user?.id || null;
         const posts = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
