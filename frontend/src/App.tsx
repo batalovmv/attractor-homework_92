@@ -18,7 +18,7 @@ function App() {
     const dispatch = useAppDispatch();
     const user = useAppSelector((state) => state.user.userInfo);
     const emailSent = useAppSelector((state) => state.user.emailSent);
-    
+    const authLoading = useAppSelector((state) => state.user.authLoading);
     useEffect(() => {
         async function checkAuthState() {
             const userInfo = loadFromLocalStorage('userInfo');
@@ -27,7 +27,6 @@ function App() {
             if (token) {
                 try {
                     const decodedToken = jwtDecode<JwtPayload>(token);
-                    // Проверка, что свойство exp определено в декодированном токене
                     if (decodedToken && typeof decodedToken.exp === 'number') {
                         const isTokenExpired = decodedToken.exp < Date.now() / 1000;
 
@@ -37,13 +36,14 @@ function App() {
                             dispatch(logoutUser());
                         }
                     } else {
-                        // Если exp не определён, считаем токен недействительным
                         dispatch(logoutUser());
                     }
                 } catch (error) {
                     dispatch(logoutUser());
                 }
             }
+            // После проверки установите authLoading в false
+            dispatch(userSlice.actions.setAuthLoading(false));
         }
 
         checkAuthState();
@@ -63,11 +63,14 @@ function App() {
 
                         <Route
                             element={
-                                <ProtectedRoute isAllowed={!!user} redirectPath="/login" />
+                                <ProtectedRoute
+                                    isAllowed={!!user && !authLoading}
+                                    redirectPath="/login"
+                                >
+                                    <Route path="/add-post" element={<NewPost />} />
+                                </ProtectedRoute>
                             }
-                        >
-                            <Route path="/add-post" element={<NewPost />} />
-                        </Route>
+                        />
                     </Routes>
                 </Container>
             </main>

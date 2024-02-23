@@ -11,6 +11,7 @@ interface userState {
     registerError: null | string | userResponseValidateError;
     loginError: null | string;
     emailSent: boolean,
+    authLoading: boolean,
 }
 
 type userRequest = {
@@ -110,6 +111,7 @@ const initialState: userState = {
     loginError: null,
     loading: false,
     emailSent: false,
+    authLoading: true,
 };
 
 const userSlice = createSlice({
@@ -122,7 +124,10 @@ const userSlice = createSlice({
         logout: (state) => {
             state.userInfo = null;
             removeFromLocalStorage('userInfo');
-        }
+        },
+        setAuthLoading(state, action) {
+            state.authLoading = action.payload;
+        },
     },
     extraReducers: (builder) => {
         builder
