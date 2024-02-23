@@ -10,8 +10,6 @@ import { Like } from "../entities/like.entity";
 
 @JsonController('/posts')
 export class PostController {
-
-
     @Get('/')
     async getAllPosts(@CurrentUser({ required: true }) user: User) {
         const currentUserId = user?.id || null;
