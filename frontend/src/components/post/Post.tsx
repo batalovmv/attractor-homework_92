@@ -56,7 +56,7 @@ const Post = ({ post, onDelete }: Props) => {
             setCurrentUserLiked(true); // устанавливаем, что пользователь лайкнул
         }
     };
-
+    const formattedDate = moment(post.datetime).format("LLL");
     return (
         <Box mb={4}>
             <Card elevation={1} sx={{ width: "100%" }}>
@@ -75,9 +75,7 @@ const Post = ({ post, onDelete }: Props) => {
                     )}
                     <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
                         <CardContent>
-                            <Typography variant="h6">{`${moment(post.datetime).format(
-                                "MMM Do YYYY, h:mm a"
-                            )}`}</Typography>
+                            <Typography variant="h6">{formattedDate}</Typography>
                             <Typography
                                 fontFamily={"monospace"}
                             >{`by ${post.user.username}`}</Typography>
@@ -98,9 +96,12 @@ const Post = ({ post, onDelete }: Props) => {
                                     <ThumbUpAlt />
                                 </IconButton>
                                 <Typography variant="body2" sx={{ mr: 2 }}>
-                                    {likeCount} Likes 
+                                    {likeCount} Likes
                                 </Typography>
-                                <CommentIcon sx={{ mr: 1 }} />
+                                {/* Обертка иконки комментария в StyledLink */}
+                                <StyledLink to={`/posts/${post.id}`}>
+                                    <CommentIcon sx={{ cursor: 'pointer', mr: 1 }} />
+                                </StyledLink>
                                 <Typography variant="body2">
                                     {post.commentCount} Comments
                                 </Typography>
