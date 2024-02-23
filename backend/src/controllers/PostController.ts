@@ -15,25 +15,42 @@ export class PostController {
         const currentUserId = user?.id || null;
         const posts = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
-            .leftJoinAndSelect("post.comments", "comments")
-            .leftJoinAndSelect("post.likes", "likes")
-            .loadRelationCountAndMap('post.commentCount', 'post.comments')
-            .loadRelationCountAndMap('post.likeCount', 'post.likes')
+            .leftJoinAndSelect(
+                subQuery => {
+                    return subQuery
+                        .from(Comment, "comment")
+                        .select("COUNT(*)", "count")
+                        .addSelect("comment.postId", "postId")
+                        .groupBy("comment.postId");
+                },
+                "comments",
+                "comments.postId = post.id"
+            )
+            .leftJoinAndSelect(
+                subQuery => {
+                    return subQuery
+                        .from(Like, "like")
+                        .select("COUNT(*)", "count")
+                        .addSelect("like.postId", "postId")
+                        .groupBy("like.postId");
+                },
+                "likes",
+                "likes.postId = post.id"
+            )
             .addSelect(subQuery => {
                 return subQuery
                     .select("COUNT(*)", "currentUserLikedCount")
                     .from(Like, "like")
                     .where("like.postId = post.id AND like.userId = :currentUserId", { currentUserId });
             }, "post.currentUserLiked")
-            .groupBy("post.id")
-            .addGroupBy("user.id")
-            // Если есть другие поля, которые вы хотите выбрать, добавьте их здесь
             .orderBy("post.datetime", "DESC")
             .getMany();
 
         // Здесь мы преобразовываем число лайков в булево значение
         posts.forEach(post => {
-            post.currentUserLiked = Number(post.currentUserLiked) > 0;
+            post.currentUserLiked = post.likes.some(like => like.userId === currentUserId);
+            post.commentCount = post.comments.length;
+            post.likeCount = post.likes.length;
         });
 
         return posts;
