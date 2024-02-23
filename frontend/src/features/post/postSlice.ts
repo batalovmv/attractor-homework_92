@@ -19,11 +19,13 @@ const initialState: State = {
 };
 
 export const fetchPosts = createAsyncThunk(
-  "fetch/posts",
-
-  async () => {
-    return await axiosInstance.get<IPost[]>("/posts").then((res) => res.data);
-  }
+    "fetch/posts",
+    async (_, { getState }) => {
+        const token = (getState() as RootState).user.userInfo?.token;
+        return await axiosInstance.get<IPost[]>("/posts", {
+            headers: { Authorization: `Bearer ${token}` },
+        }).then((res) => res.data);
+    }
 );
 
 export const createPost = createAsyncThunk<
