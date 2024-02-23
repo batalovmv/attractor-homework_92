@@ -1,4 +1,4 @@
-import { Authorized, Body, CurrentUser, Delete, Get, HttpError, JsonController, Param, Post, Req, Res, UseBefore } from "routing-controllers";
+import { Authorized, Body, CurrentUser, Delete, Get, HttpError, JsonController, Param, Post, QueryParam, Req, Res, UseBefore } from "routing-controllers";
 import { CreatePostDto } from "../dto/createPostDto";
 import { UserRepository } from "../repositories/user.repository";
 import { PostRepository } from "../repositories/post.repository";
@@ -12,9 +12,18 @@ import { BlogComment } from "../entities/blogComment.entity";
 @JsonController('/posts')
 export class PostController {
     @Get('/')
-    async getAllPosts(@CurrentUser({ required: true }) user: User) {
+    async getAllPosts(
+        @CurrentUser({ required: true }) user: User,
+        @QueryParam('page') page: number = 1,
+        @QueryParam('limit') limit: number = 10) {
         const currentUserId = user?.id || null;
-
+        const [result, total] = await PostRepository.createQueryBuilder("post")
+            .leftJoinAndSelect("post.user", "user")
+            // ... (остальные join)
+            .orderBy("post.datetime", "DESC")
+            .skip((page - 1) * limit)
+            .take(limit)
+            .getManyAndCount();
         const posts = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
             .loadRelationCountAndMap("post.commentCount", "post.comments")
@@ -35,8 +44,17 @@ export class PostController {
         entities.forEach((post, index) => {
             post.currentUserLiked = Boolean(raw[index].post_liked);
         });
-
-        return entities;
+        const dataWithLikes = result.map((post) => {
+            const postRaw = raw.find(rawPost => rawPost.post_id === post.id);
+            return { ...post, currentUserLiked: Boolean(postRaw?.post_liked) };
+        });
+        return {
+            data: dataWithLikes,
+            count: total,
+            currentPage: page,
+            lastPage: Math.ceil(total / limit)
+        };
+       
     }
 
     @Get('/:id')

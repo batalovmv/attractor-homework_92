@@ -6,28 +6,31 @@ import { isAxiosError } from "axios";
 
 interface State {
   posts: IPost[];
+    pageCount: number;
   error: Error | null;
   loading: boolean;
 }
 
 const initialState: State = {
   posts: [],
+  pageCount: 1,
   error: null,
   loading: false,
 };
 
 export const fetchPosts = createAsyncThunk(
-    "fetch/posts",
-    async (_, { getState, rejectWithValue }) => {
+    "post/fetchPosts",
+    async ({ page, perPage }: { page: number; perPage: number }, { getState, rejectWithValue }) => {
         try {
             const token = (getState() as RootState).user.userInfo?.token;
             if (!token) {
                 throw new Error('Token not found');
             }
-            const response = await axiosInstance.get<IPost[]>("/posts", {
+            const response = await axiosInstance.get<{ posts: IPost[]; pageCount: number }>(`/posts?page=${page}&limit=${perPage}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            return response.data;
+            // Assume the API response includes a pageCount
+            return { posts: response.data.posts, pageCount: response.data.pageCount };
         } catch (error) {
             if (isAxiosError(error)) {
                 return rejectWithValue(error.response?.data || "An error occurred");
@@ -91,11 +94,12 @@ const PostSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      .addCase(fetchPosts.fulfilled, (state, action) => {
-        state.posts = action.payload;
-        state.error = null;
-        state.loading = false;
-      })
+        .addCase(fetchPosts.fulfilled, (state, action) => {
+            state.posts = action.payload.posts; // Update posts
+            state.pageCount = action.payload.pageCount; // Update pageCount
+            state.error = null;
+            state.loading = false;
+        })
 
       .addCase(fetchPosts.rejected, (state, action) => {
         state.error = action.error as Error;
