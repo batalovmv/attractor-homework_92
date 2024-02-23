@@ -34,7 +34,7 @@ export class PostController {
             .addSelect(subQuery => {
                 return subQuery
                     .select("COUNT(comment.id)", "commentCount")
-                    .from(Comment, "comment")
+                    .from(BlogComment, "comment")
                     .where("comment.postId = post.id")
             }, "commentCount")
             .addSelect(subQuery => {
