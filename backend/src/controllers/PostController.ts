@@ -21,9 +21,10 @@ export class PostController {
             .loadRelationCountAndMap("post.likeCount", "post.likes")
             .addSelect(subQuery => {
                 return subQuery
-                    .select("CASE WHEN COUNT(like.id) > 0 THEN true ELSE false END", "liked")
+                    .select("IF(COUNT(like.id) > 0, true, false)", "liked")
                     .from(Like, "like")
-                    .where("like.postId = post.id AND like.userId = :currentUserId", { currentUserId })
+                    .where("like.postId = post.id")
+                    .andWhere("like.userId = :currentUserId", { currentUserId })
                     .groupBy("like.postId");
             }, "post_liked")
             .orderBy("post.datetime", "DESC")
