@@ -26,11 +26,11 @@ export const fetchPosts = createAsyncThunk(
             if (!token) {
                 throw new Error('Token not found');
             }
-            const response = await axiosInstance.get<{ posts: IPost[]; pageCount: number }>(`/posts?page=${page}&limit=${perPage}`, {
+            const response = await axiosInstance.get(`/posts?page=${page}&limit=${perPage}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            // Assume the API response includes a pageCount
-            return { posts: response.data.posts, pageCount: response.data.pageCount };
+            // Adjusted to match the API response structure
+            return { posts: response.data.data, pageCount: response.data.lastPage };
         } catch (error) {
             if (isAxiosError(error)) {
                 return rejectWithValue(error.response?.data || "An error occurred");
@@ -100,24 +100,21 @@ const PostSlice = createSlice({
             state.error = null;
             state.loading = false;
         })
-
-      .addCase(fetchPosts.rejected, (state, action) => {
-        state.error = action.error as Error;
-        state.loading = false;
-      })
-
-      .addCase(fetchPosts.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(deletePost.fulfilled, (state, action) => {
-        state.posts = state.posts.filter(post => post.id !== action.payload);
-        state.loading = false;
-      })
-
-      .addCase(deletePost.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error as Error;
-      });
+        .addCase(fetchPosts.rejected, (state, action) => {
+            state.error = action.error as Error;
+            state.loading = false;
+        })
+        .addCase(fetchPosts.pending, (state) => {
+            state.loading = true;
+        })
+        .addCase(deletePost.fulfilled, (state, action) => {
+            state.posts = state.posts.filter(post => post.id !== action.payload);
+            state.loading = false;
+        })
+        .addCase(deletePost.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.error as Error;
+        });
   },
 });
 
