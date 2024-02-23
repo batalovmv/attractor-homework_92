@@ -58,7 +58,7 @@ export class PostController {
             commentCount: Number(post.commentCount),
             likeCount: Number(post.likeCount),
             currentUserLiked: post.currentUserLiked === 'TRUE' || post.currentUserLiked === true ,
-            сurrent: user
+            current: user
         }));
     }
 
