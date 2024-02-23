@@ -30,13 +30,13 @@ export class PostController {
                 "COUNT(DISTINCT comments.id) AS commentCount",
                 "COUNT(DISTINCT likes.id) AS likeCount"
             ])
-            .addSelect(subQuery => {
+            .addSelect((subQuery) => {
                 return subQuery
-                    .select("CASE WHEN COUNT(likeUser) > 0 THEN 'true' ELSE 'false' END")
-                    .from(Like, "likeUser")
-                    .where("likeUser.postId = post.id")
-                    .andWhere("likeUser.userId = :currentUserId", { currentUserId })
-                    .groupBy("likeUser.postId"); // Группировка по postId, чтобы вернуть результат для каждого поста
+                    .select("CASE WHEN COUNT(likes) > 0 THEN true ELSE false END", "currentUserLiked")
+                    .from(Like, "likes")
+                    .where("likes.postId = post.id")
+                    .andWhere("likes.userId = :currentUserId", { currentUserId })
+                    .groupBy("likes.postId") // Группировка по postId, чтобы вернуть результат для каждого поста
             }, "currentUserLiked")
                     
             .groupBy("post.id")
