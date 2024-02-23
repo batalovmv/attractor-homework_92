@@ -13,61 +13,46 @@ export class PostController {
 
     @Get('/')
     async getAllPosts(@CurrentUser() user?: User) {
-        const currentUserId = user?.id || null;
+        const currentUserId = user?.id || 0; // Если пользователь не авторизован, используем 0
 
-        // Подзапрос для подсчёта количества комментариев
-        const commentCountSubQuery = PostRepository.createQueryBuilder('p')
-            .leftJoin('p.comments', 'comment')
-            .select('p.id', 'postId')
-            .addSelect('COUNT(comment.id)', 'count')
-            .groupBy('p.id');
-
-        // Подзапрос для подсчёта количества лайков
-        const likeCountSubQuery = PostRepository.createQueryBuilder('p')
-            .leftJoin('p.likes', 'like')
-            .select('p.id', 'postId')
-            .addSelect('COUNT(like.id)', 'count')
-            .groupBy('p.id');
-
-        // Подзапрос для проверки, лайкал ли текущий пользователь пост
-        const currentUserLikedSubQuery = PostRepository.createQueryBuilder('p')
-            .leftJoin('p.likes', 'liked')
-            .select('p.id', 'postId')
-            .addSelect('COUNT(liked.id)', 'count')
-            .where('liked.user.id = :currentUserId', { currentUserId })
-            .groupBy('p.id');
-
-        // Основной запрос, соединяющий все подзапросы
         const posts = await PostRepository.createQueryBuilder('post')
-            .leftJoinAndSelect('post.user', 'user')
-            .leftJoinAndMapOne('post.commentCount', `(${commentCountSubQuery.getQuery()})`, 'commentCount', 'post.id = commentCount.postId')
-            .leftJoinAndMapOne('post.likeCount', `(${likeCountSubQuery.getQuery()})`, 'likeCount', 'post.id = likeCount.postId')
-            .leftJoinAndMapOne('post.currentUserLiked', `(${currentUserLikedSubQuery.getQuery()})`, 'currentUserLiked', 'post.id = currentUserLiked.postId')
-            .select([
-                'post',
-                'user.id',
-                'user.username',
-                'commentCount.count',
-                'likeCount.count',
-                'currentUserLiked.count',
-            ])
-            .setParameters({ currentUserId })
-            .getRawMany();
+            .leftJoin('post.comments', 'comment') // Присоединяем комментарии
+            .leftJoin('post.likes', 'like') // Присоединяем лайки
+            .loadRelationCountAndMap('post.commentCount', 'post.comments') // Подсчитываем количество комментариев
+            .loadRelationCountAndMap('post.likeCount', 'post.likes') // Подсчитываем количество лайков
+            .leftJoin('like.user', 'likeUser') // Присоединяем пользователей, которые лайкнули посты
+            .addSelect(subQuery => {
+                return subQuery
+                    .select('COUNT(likeUser.id)', 'liked')
+                    .from('like', 'like')
+                    .where('like.postId = post.id')
+                    .andWhere('like.userId = :currentUserId', { currentUserId });
+            }, 'currentUserLiked')
+            .groupBy('post.id') // Группируем результаты по ID поста
+            .addGroupBy('user.id') // Группируем результаты по ID пользователя
+            .orderBy('post.datetime', 'DESC') // Сортируем посты по дате
+            .getRawAndEntities(); // Получаем сущности и "сырые" данные
 
-        return posts.map(post => ({
-            id: post.post_id,
-            title: post.post_title,
-            description: post.post_description,
-            image: post.post_image,
-            datetime: post.post_datetime,
-            user: {
-                id: post.user_id,
-                username: post.user_username,
-            },
-            commentCount: Number(post.commentCount_count),
-            likeCount: Number(post.likeCount_count),
-            currentUserLiked: Number(post.currentUserLiked_count) > 0
-        }));
+        // Преобразуем результаты в желаемый формат
+        const result = posts.entities.map(post => {
+            const raw = posts.raw.find(r => r.post_id === post.id);
+            return {
+                id: post.id,
+                title: post.title,
+                description: post.description,
+                image: post.image,
+                datetime: post.datetime,
+                user: {
+                    id: post.user.id,
+                    username: post.user.username
+                },
+                commentCount: raw.post_commentCount,
+                likeCount: raw.post_likeCount,
+                currentUserLiked: raw.currentUserLiked > 0 // Проверяем, был ли лайк от текущего пользователя
+            };
+        });
+
+        return result;
     }
 
     @Get('/:id')
