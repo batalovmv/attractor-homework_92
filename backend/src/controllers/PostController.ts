@@ -47,13 +47,18 @@ export class PostController {
             post.likeCount = raw[index].post_likeCount; 
         });
         const dataWithLikesAndCounts = result.map((post) => {
-            const postRaw = raw.find(rawPost => rawPost.post_id === post.id);
-            return {
-                ...post,
-                currentUserLiked: Boolean(postRaw?.post_liked),
-                commentCount: postRaw?.post_commentCount, 
-                likeCount: postRaw?.post_likeCount 
-            };
+            // Приведение post.id к строке, если rawPost.post_id является строкой
+            const postRaw = raw.find(rawPost => rawPost.post_id.toString() === post.id.toString());
+            if (postRaw) {
+                return {
+                    ...post,
+                    currentUserLiked: Boolean(postRaw.post_liked),
+                    commentCount: postRaw.post_commentCount,
+                    likeCount: postRaw.post_likeCount
+                };
+            }
+            // Если по какой-то причине postRaw не найден, вернуть пост без этих данных
+            return post;
         });
         return {
             data: dataWithLikesAndCounts,
