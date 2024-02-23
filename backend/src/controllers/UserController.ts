@@ -5,9 +5,10 @@ import { nanoid } from 'nanoid';
 import bcrypt from 'bcrypt';
 import { UserRepository } from "../repositories/user.repository";
 import { User } from "../entities/user.entity";
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { sendConfirmationEmail } from "../auth/mailer";
 import { Response } from 'express';
+import { RefreshTokenDto } from "../dto/RefreshTokenDto";
 
 if (!process.env.JWT_SECRET) {
     throw new Error('Переменная среды JWT_SECRET не определена');
@@ -81,6 +82,56 @@ export class UserController {
         );
 
         return { token: token, username: user.username, id: user.id };
+    }
+
+    @Post('/refresh')
+    @HttpCode(200)
+    async refresh(@Body() refreshData: RefreshTokenDto) {
+        const { refreshToken } = refreshData;
+
+        try {
+            // Проверяем refresh token
+            const decoded = jwt.verify(refreshToken, JWT_SECRET);
+
+            // Проверяем, что decoded является объектом и содержит свойство id
+            if (typeof decoded !== 'object' || decoded === null || !('id' in decoded)) {
+                throw new UnauthorizedError("Невалидный refresh token");
+            }
+
+            // Здесь мы точно знаем, что decoded имеет свойство id, но TypeScript все еще не знает его типа,
+            // поэтому мы используем оператор приведения типа, чтобы сообщить TypeScript, что id это строка.
+            const userId = (decoded as JwtPayload).id;
+            if (typeof userId !== 'string') {
+                throw new UnauthorizedError("Невалидный ID в токене");
+            }
+            const numericUserId = parseInt(userId, 10);
+            if (isNaN(numericUserId)) {
+                throw new UnauthorizedError("ID пользователя должен быть числом");
+            }
+
+            // Ищем пользователя по ID из токена
+            const user = await UserRepository.findOne({
+                where: {
+                    id: numericUserId // используем преобразованный numericUserId для поиска
+                }
+            });
+
+            if (!user) {
+                throw new UnauthorizedError("Пользователь не найден");
+            }
+
+            // Выдаем новый access token
+            const newToken = jwt.sign(
+                { id: user.id, username: user.username },
+                JWT_SECRET,
+                { expiresIn: '1h' }
+            );
+
+            return { token: newToken };
+
+        } catch (error) {
+            throw new UnauthorizedError("Невалидный refresh token");
+        }
     }
 
     @Get('/confirm/:token')

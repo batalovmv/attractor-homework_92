@@ -100,6 +100,31 @@ export const loginUser = createAsyncThunk<
     }
 });
 
+export const refreshToken = createAsyncThunk<
+    { token: string },
+    { refreshToken: string },
+    { rejectValue: string }
+>(
+    "auth/refresh",
+    async ({ refreshToken }, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.post<{ token: string }>("/auth/refresh", { refreshToken });
+            // Сохраняем новый токен в локальное хранилище
+            saveToLocalStorage('authToken', response.data.token);
+            return response.data;
+        } catch (err) {
+            if (isAxiosError(err)) {
+                const error: AxiosError<userResponseError> = err;
+                // Возвращаем сообщение об ошибке через rejectWithValue
+                return rejectWithValue(
+                    error.response?.data.error.message || "Internet connection error"
+                );
+            }
+            throw err;
+        }
+    }
+);
+
 export const logoutUser = createAsyncThunk("auth.logout", async (_, { dispatch }) => {
     dispatch(userSlice.actions.logout());
 });
@@ -169,6 +194,34 @@ const userSlice = createSlice({
                 state.userInfo = null;
                 removeFromLocalStorage('userInfo');
             })
+            .addCase(refreshToken.fulfilled, (state, action) => {
+                state.loading = false;
+                state.authLoading = false;
+
+                // Если userInfo не null, просто обновляем токен
+                if (state.userInfo) {
+                    state.userInfo.token = action.payload.token;
+                } else {
+                    // Если userInfo null, устанавливаем начальные данные пользователя
+                    // Здесь нужно установить все необходимые свойства, чтобы соответствовать типу IUser
+                    state.userInfo = {
+                        id: 0, // Вы должны предоставить реальный id, полученный от вашего API
+                        username: '', // Вы должны предоставить реальное имя пользователя, полученное от вашего API
+                        email: '', // Вы должны предоставить реальный email, полученный от вашего API
+                        token: action.payload.token
+                    };
+                }
+            })
+            .addCase(refreshToken.rejected, (state, action) => {
+                state.loading = false;
+                state.authLoading = false;
+
+                // Если payload является строкой, присваиваем её loginError, иначе устанавливаем loginError в null
+                state.loginError = action.payload ?? null;
+            })
+            .addCase(refreshToken.pending, (state) => {
+                state.authLoading = true;
+            });
             
            
     },
