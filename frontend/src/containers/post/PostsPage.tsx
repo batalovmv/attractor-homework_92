@@ -17,10 +17,9 @@ const PostsPage = () => {
     useEffect(() => {
         dispatch(fetchPosts({ page: currentPage, perPage: postsPerPage }));
     }, [dispatch, currentPage, postsPerPage]);
-    const handlePageChange = (value:number) => {
+    const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
         setCurrentPage(value);
     };
-   
 
   const deleteHandler = (id: number) => {
     dispatch(deletePost(id));
@@ -43,13 +42,13 @@ const PostsPage = () => {
                     post={post}
                 />
             ))}
-            <Pagination
-                count={pageCount} // Количество страниц
-                page={currentPage}
-                onChange={handlePageChange}
-                color="primary"
-                shape="rounded"
-            />
+          <Pagination
+              count={pageCount} // Количество страниц
+              page={currentPage}
+              onChange={handlePageChange} // Pass the correct function here
+              color="primary"
+              shape="rounded"
+          />
         </Container>
     );
 };
