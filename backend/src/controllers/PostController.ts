@@ -18,32 +18,39 @@ export class PostController {
         @QueryParam('limit') limit: number = 10
     ) {
         const currentUserId = user?.id || null;
-        const [result, total] = await PostRepository.createQueryBuilder("post")
+        const queryBuilder = PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
             .orderBy("post.datetime", "DESC")
             .skip((page - 1) * limit)
-            .take(limit)
-            .getManyAndCount();
+            .take(limit);
 
-        const postsWithCounts = await Promise.all(result.map(async (post) => {
-            const commentCountResult = await PostRepository.createQueryBuilder("comment")
-                .where("comment.postId = :postId", { postId: post.id })
+        // Получаем посты и общее количество для пагинации
+        const [posts, total] = await queryBuilder.getManyAndCount();
+
+        for (let post of posts) {
+            // Ensure the column name matches the one defined in your Comment entity
+            const commentCount = await PostRepository.createQueryBuilder("comment")
+                .where("comment.post = :postId", { postId: post.id })
                 .getCount();
 
-            const likeCountResult = await PostRepository.createQueryBuilder("like")
-                .where("like.postId = :postId", { postId: post.id })
+            // Ensure the column name matches the one defined in your Like entity
+            const likeCount = await PostRepository.createQueryBuilder("like")
+                .where("like.post = :postId", { postId: post.id })
                 .getCount();
 
-            // No need to fetch currentUserLiked again, as it's already in the post entity
-            return {
-                ...post,
-                commentCount: commentCountResult,
-                likeCount: likeCountResult
-            };
-        }));
+            // Check if the current user liked the post
+            const liked = await PostRepository.createQueryBuilder("like")
+                .where("like.post = :postId", { postId: post.id })
+                .andWhere("like.user = :userId", { userId: currentUserId })
+                .getCount();
+
+            post.commentCount = commentCount;
+            post.likeCount = likeCount;
+            post.currentUserLiked = liked > 0;
+        }
 
         return {
-            data: postsWithCounts,
+            data: posts,
             count: total,
             currentPage: page,
             lastPage: Math.ceil(total / limit)
