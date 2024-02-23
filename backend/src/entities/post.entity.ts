@@ -23,11 +23,11 @@ export class Post {
   @ManyToOne(() => User, user => user.posts)
   user!: User;
 
-  @OneToMany(() => BlogComment, comment => comment.post, { cascade: true, onDelete: "CASCADE" })
-  comments!: BlogComment[];
+    @OneToMany(() => BlogComment, comment => comment.post, { cascade: true, onDelete: "CASCADE" })
+    comments: BlogComment[] = [];
 
-  @OneToMany(() => Like, like => like.post)
-  likes!: Like[];
+    @OneToMany(() => Like, like => like.post)
+    likes: Like[] = [];
 
     @Column({ nullable: true, select: false })
     currentUserLiked?: boolean;
@@ -37,7 +37,5 @@ export class Post {
 
     @Column({ nullable: true, select: false })
     likeCount?: number;
-
-  
 
 }
