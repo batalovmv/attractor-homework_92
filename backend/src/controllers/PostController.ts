@@ -8,6 +8,7 @@ import { User } from "../entities/user.entity";
 import { CommentRepository } from "../repositories/blogComment.repository";
 import { Like } from "../entities/like.entity";
 import { BlogComment } from "../entities/blogComment.entity";
+import { LikeRepository } from "../repositories/like.repository";
 
 @JsonController('/posts')
 export class PostController {
@@ -150,9 +151,16 @@ export class PostController {
         if (!post) throw new HttpError(404, "Post not found");
         if (post.user.id !== user.id) throw new HttpError(403, "Forbidden");
 
-        await PostRepository.delete(post.id);
+        // Предполагается, что у вас есть CommentRepository и LikeRepository
+        // Удалите все комментарии, связанные с постом
+        await CommentRepository.delete({ post: { id: postId } });
 
-        
+        // Удалите все лайки, связанные с постом
+        await LikeRepository.delete({ post: { id: postId } });
+
+        // Теперь можно безопасно удалить пост
+        await PostRepository.delete(postId);
+
         return { message: "Post successfully deleted" };
     }
 
