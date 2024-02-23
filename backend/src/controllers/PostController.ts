@@ -43,13 +43,20 @@ export class PostController {
 
         entities.forEach((post, index) => {
             post.currentUserLiked = Boolean(raw[index].post_liked);
+            post.commentCount = raw[index].post_commentCount; 
+            post.likeCount = raw[index].post_likeCount; 
         });
-        const dataWithLikes = result.map((post) => {
+        const dataWithLikesAndCounts = result.map((post) => {
             const postRaw = raw.find(rawPost => rawPost.post_id === post.id);
-            return { ...post, currentUserLiked: Boolean(postRaw?.post_liked) };
+            return {
+                ...post,
+                currentUserLiked: Boolean(postRaw?.post_liked),
+                commentCount: postRaw?.post_commentCount, 
+                likeCount: postRaw?.post_likeCount 
+            };
         });
         return {
-            data: dataWithLikes,
+            data: dataWithLikesAndCounts,
             count: total,
             currentPage: page,
             lastPage: Math.ceil(total / limit)
