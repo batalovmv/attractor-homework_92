@@ -18,45 +18,34 @@ export class PostController {
         @QueryParam('limit') limit: number = 10) {
         const currentUserId = user?.id || null;
 
-        const [result, total] = await PostRepository.createQueryBuilder("post")
+        const [posts, total] = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
-            // ... (остальные join)
             .orderBy("post.datetime", "DESC")
             .skip((page - 1) * limit)
             .take(limit)
             .getManyAndCount();
 
-        const postIds = result.map(post => post.id);
+        for (const post of posts) {
+            const commentCount = await PostRepository.createQueryBuilder("comment")
+                .where("comment.postId = :postId", { postId: post.id })
+                .getCount();
 
-        const likesCount = await PostRepository.createQueryBuilder("post")
-            .select("post.id", "id")
-            .addSelect("COUNT(like.id)", "likeCount")
-            .leftJoin("post.likes", "like")
-            .where("post.id IN (:...postIds)", { postIds })
-            .groupBy("post.id")
-            .getRawMany();
+            const likeCount = await PostRepository.createQueryBuilder("like")
+                .where("like.postId = :postId", { postId: post.id })
+                .getCount();
 
-        const commentsCount = await PostRepository.createQueryBuilder("post")
-            .select("post.id", "id")
-            .addSelect("COUNT(comment.id)", "commentCount")
-            .leftJoin("post.comments", "comment")
-            .where("post.id IN (:...postIds)", { postIds })
-            .groupBy("post.id")
-            .getRawMany();
+            const userLiked = await PostRepository.createQueryBuilder("like")
+                .where("like.postId = :postId", { postId: post.id })
+                .andWhere("like.userId = :userId", { userId: currentUserId })
+                .getCount();
 
-        const dataWithLikesAndCounts = result.map(post => {
-            const likesCountForPost = likesCount.find(like => like.id === post.id) || { likeCount: '0' };
-            const commentsCountForPost = commentsCount.find(comment => comment.id === post.id) || { commentCount: '0' };
-            return {
-                ...post,
-                currentUserLiked: post.likes.some(like => like.userId === currentUserId),
-                commentCount: parseInt(commentsCountForPost.commentCount),
-                likeCount: parseInt(likesCountForPost.likeCount)
-            };
-        });
+            post.commentCount = commentCount;
+            post.likeCount = likeCount;
+            post.currentUserLiked = userLiked > 0;
+        }
 
         return {
-            data: dataWithLikesAndCounts,
+            data: posts,
             count: total,
             currentPage: page,
             lastPage: Math.ceil(total / limit)
