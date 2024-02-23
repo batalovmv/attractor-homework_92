@@ -8,60 +8,77 @@ import { User } from "../entities/user.entity";
 import { CommentRepository } from "../repositories/blogComment.repository";
 import { Like } from "../entities/like.entity";
 import { BlogComment } from "../entities/blogComment.entity";
-import { getRepository } from "typeorm";
 
 @JsonController('/posts')
 export class PostController {
     @Get('/')
     async getAllPosts(@CurrentUser({ required: true }) user: User) {
-        const currentUserId = user.id;
+        const currentUserId = user?.id || null;
 
-        const posts = await getRepository(Post)
-            .createQueryBuilder("post")
+        const posts = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
             .loadRelationCountAndMap("post.commentCount", "post.comments")
             .loadRelationCountAndMap("post.likeCount", "post.likes")
-            .leftJoin("post.likes", "likes")
-            .addSelect("COUNT(likes.id) FILTER (WHERE likes.userId = :currentUserId) > 0", "post_currentUserLiked")
-            .groupBy("post.id")
-            .setParameter("currentUserId", currentUserId)
+            .addSelect(subQuery => {
+                return subQuery
+                    .select("CASE WHEN COUNT(like.id) > 0 THEN true ELSE false END", "liked")
+                    .from(Like, "like")
+                    .where("like.postId = post.id AND like.userId = :currentUserId", { currentUserId })
+                    .groupBy("like.postId");
+            }, "post_liked")
             .orderBy("post.datetime", "DESC")
-            .getMany();
+            .getRawAndEntities();
 
-        // Приведение post_currentUserLiked к булевому значению
-        posts.forEach(post => {
-            post.currentUserLiked = Boolean(post.currentUserLiked);
+        const { entities, raw } = posts;
+
+        entities.forEach((post, index) => {
+            // Assign the raw boolean liked property to currentUserLiked in the entity.
+            post.currentUserLiked = raw[index].post_liked === 'true';
         });
 
-        return posts;
+        return entities;
     }
 
     @Get('/:id')
-    async getPost(@Param('id') postId: number, @CurrentUser() user?: User) {
-        const currentUserId = user?.id;
+    async getPost(@Param('id') postId: number, @CurrentUser() user?: User) { // Также делаем user опциональным
+        const currentUserId = user?.id || null;
 
-        const post = await getRepository(Post)
-            .createQueryBuilder("post")
+        const post = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
-            .leftJoinAndSelect("post.comments", "comments")
-            .leftJoinAndSelect("post.likes", "likes")
-            .loadRelationCountAndMap("post.commentCount", "post.comments")
-            .loadRelationCountAndMap("post.likeCount", "post.likes")
+            .leftJoin("post.comments", "comments")
             .leftJoin("post.likes", "likes")
-            .addSelect("COUNT(likes.id) FILTER (WHERE likes.userId = :currentUserId) > 0", "post_currentUserLiked")
+            .leftJoinAndSelect("likes.user", "likeUser", "likeUser.id = :currentUserId", { currentUserId })
+            .select([
+                "post",
+                "user.id",
+                "user.username",
+                "COUNT(DISTINCT comments.id) AS commentCount",
+                "COUNT(DISTINCT likes.id) AS likeCount",
+                "SUM(CASE WHEN likeUser.id = :currentUserId THEN 1 ELSE 0 END) AS currentUserLiked"
+            ])
             .where("post.id = :id", { id: postId })
-            .setParameter("currentUserId", currentUserId)
             .groupBy("post.id")
-            .getOne();
+            .addGroupBy("user.id")
+            .addGroupBy("user.username")
+            .setParameter("currentUserId", currentUserId)
+            .getRawOne();
 
-        if (!post) {
-            throw new HttpError(404, "Пост не найден");
-        }
+        if (!post) throw new HttpError(404, "Post not found");
 
-        // Приведение post_currentUserLiked к булевому значению
-        post.currentUserLiked = Boolean(post.currentUserLiked);
-
-        return post;
+        return {
+            id: post.post_id,
+            title: post.post_title,
+            description: post.post_description,
+            image: post.post_image,
+            datetime: post.post_datetime,
+            user: {
+                id: post.user_id,
+                username: post.user_username,
+            },
+            commentCount: Number(post.commentCount),
+            likeCount: Number(post.likeCount),
+            currentUserLiked: currentUserId ? post.currentUserLiked > 0 : false
+        };
     }  
 
     @Post('/')
