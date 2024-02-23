@@ -29,13 +29,8 @@ export class Post {
     @OneToMany(() => Like, like => like.post)
     likes!: Like[] 
 
-    @Column({ nullable: true, select: false })
     currentUserLiked?: boolean;
-
-    @Column({ nullable: true, select: false })
     commentCount?: number;
-
-    @Column({ nullable: true, select: false })
     likeCount?: number;
    
 

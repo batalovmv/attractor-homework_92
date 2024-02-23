@@ -19,29 +19,30 @@ export class PostController {
         const currentUserId = user?.id || null;
         const [result, total] = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
-            // ... (остальные join, если они есть)
+            // ... (остальные join)
             .orderBy("post.datetime", "DESC")
             .skip((page - 1) * limit)
             .take(limit)
             .getManyAndCount();
 
-        // Выполняем запрос только для получения счетчиков для постов в текущей странице
         const postIds = result.map(post => post.id);
-        const postsWithCounts = await PostRepository.createQueryBuilder("post")
+
+        // Получаем комментарии и лайки для каждого поста
+        const postsLikesAndComments = await PostRepository.createQueryBuilder("post")
             .select("post.id", "id")
             .loadRelationCountAndMap("post.commentCount", "post.comments")
             .loadRelationCountAndMap("post.likeCount", "post.likes")
             .where("post.id IN (:...postIds)", { postIds })
+            .andWhere("post.user.id = :currentUserId", { currentUserId })
             .getRawMany();
 
-        // Сопоставляем данные счетчиков с постами
         const dataWithLikesAndCounts = result.map(post => {
-            const postCounts = postsWithCounts.find(p => p.id === post.id);
+            const postExtra = postsLikesAndComments.find(p => p.id === post.id);
             return {
                 ...post,
                 currentUserLiked: post.likes.some(like => like.userId === currentUserId),
-                commentCount: postCounts ? postCounts.post_commentCount : null,
-                likeCount: postCounts ? postCounts.post_likeCount : null,
+                commentCount: postExtra ? postExtra.commentCount : 0,
+                likeCount: postExtra ? postExtra.likeCount : 0,
             };
         });
 
