@@ -20,19 +20,23 @@ const useCheckAuthState = () => {
 
                 if (token && refreshToken) {
                     try {
+                        console.log('Attempting to refresh token or login user...');
                         const decodedToken = jwtDecode<JwtPayload>(token);
                         // Если токен истек, но есть refreshToken, попытаемся обновить токен
                         console.log(`decodedToken`, decodedToken);
                         if (decodedToken.exp && typeof decodedToken.exp === 'number' && Date.now() >= decodedToken.exp * 1000) {
                             console.log(`refreshToken`, refreshToken);
                             dispatch(refreshToken({ refreshToken }));
+                            console.log('Dispatched action for refreshing token or logging in user.');
                         } else {
                             console.log(`userInfo`, userInfo);
                             dispatch(loginUser(userInfo));
+                            console.log('Dispatched action for refreshing token or logging in user.');
                         }
                     } catch (error) {
                         console.error('Token decode failed:', error);
                         dispatch(logoutUser());
+                        console.error('Error during token refresh or user login:', error);
                     }
                 } else {
                     console.error('Token decode failed 2:');
