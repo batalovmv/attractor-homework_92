@@ -17,34 +17,33 @@ export class PostController {
         @QueryParam('page') page: number = 1,
         @QueryParam('limit') limit: number = 10) {
         const currentUserId = user?.id || null;
-        const { entities, raw } = await PostRepository.createQueryBuilder("post")
+        const [result, total] = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
-            .loadRelationCountAndMap("post.commentCount", "post.comments")
-            .loadRelationCountAndMap("post.likeCount", "post.likes")
-            .addSelect(subQuery => {
-                return subQuery
-                    .select("COUNT(like.id) > 0", "liked")
-                    .from(Like, "like")
-                    .where("like.postId = post.id")
-                    .andWhere("like.userId = :currentUserId", { currentUserId })
-                    .groupBy("like.postId");
-            }, "post_liked")
+            // ... (остальные join, если они есть)
             .orderBy("post.datetime", "DESC")
             .skip((page - 1) * limit)
             .take(limit)
-            .getRawAndEntities();
+            .getManyAndCount();
 
-        // Преобразуем raw данные
-        const dataWithLikesAndCounts = entities.map((entity, index) => {
+        // Выполняем запрос только для получения счетчиков для постов в текущей странице
+        const postIds = result.map(post => post.id);
+        const postsWithCounts = await PostRepository.createQueryBuilder("post")
+            .select("post.id", "id")
+            .loadRelationCountAndMap("post.commentCount", "post.comments")
+            .loadRelationCountAndMap("post.likeCount", "post.likes")
+            .where("post.id IN (:...postIds)", { postIds })
+            .getRawMany();
+
+        // Сопоставляем данные счетчиков с постами
+        const dataWithLikesAndCounts = result.map(post => {
+            const postCounts = postsWithCounts.find(p => p.id === post.id);
             return {
-                ...entity,
-                currentUserLiked: raw[index].post_liked === '1', // или приведите к Boolean, в зависимости от возвращаемых значений
-                commentCount: parseInt(raw[index].post_commentCount),
-                likeCount: parseInt(raw[index].post_likeCount)
+                ...post,
+                currentUserLiked: post.likes.some(like => like.userId === currentUserId),
+                commentCount: postCounts ? postCounts.post_commentCount : null,
+                likeCount: postCounts ? postCounts.post_likeCount : null,
             };
         });
-
-        const total = await PostRepository.count();
 
         return {
             data: dataWithLikesAndCounts,
