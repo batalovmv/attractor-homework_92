@@ -12,9 +12,7 @@ interface State {
 
 const initialState: State = {
   posts: [],
-
   error: null,
-
   loading: false,
 };
 
@@ -30,7 +28,8 @@ export const fetchPosts = createAsyncThunk(
         } catch (error) {
             if (isAxiosError(error)) {
                 return rejectWithValue(error.response?.data || "An error occurred");
-            } return rejectWithValue("An error occurred");
+            }
+            return rejectWithValue("An error occurred");
         }
     }
 );
