@@ -10,25 +10,29 @@ import { CommentRepository } from "../repositories/blogComment.repository";
 @JsonController('/posts')
 export class PostController {
 
+
     @Get('/')
-    async getAllPosts(@CurrentUser({ required: true }) user: User) {
+    async getAllPosts(@CurrentUser() user?: User) { 
+        const currentUserId = user?.id || null;
+
         const posts = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
             .leftJoin("post.comments", "comments")
-            .leftJoin("post.likes", "likes") // Добавляем левое соединение с таблицей likes
-            .leftJoinAndSelect("likes.user", "likeUser", "likeUser.id = :currentUserId", { currentUserId: user.id }) // Проверяем лайк текущего пользователя
+            .leftJoin("post.likes", "likes")
+            .leftJoinAndSelect("likes.user", "likeUser", "likeUser.id = :currentUserId", { currentUserId })
             .select([
                 "post",
                 "user.id",
                 "user.username",
                 "COUNT(DISTINCT comments.id) AS commentCount",
                 "COUNT(DISTINCT likes.id) AS likeCount",
-                "COUNT(DISTINCT likeUser.id) AS currentUserLiked" // Подсчет лайка текущего пользователя
+                "SUM(CASE WHEN likeUser.id = :currentUserId THEN 1 ELSE 0 END) AS currentUserLiked"
             ])
             .groupBy("post.id")
             .addGroupBy("user.id")
             .addGroupBy("user.username")
             .orderBy("post.datetime", "DESC")
+            .setParameter("currentUserId", currentUserId) 
             .getRawMany();
 
         return posts.map(post => ({
@@ -41,30 +45,34 @@ export class PostController {
                 id: post.user_id,
                 username: post.user_username,
             },
-            commentCount: post.commentCount,
-            likeCount: post.likeCount // Включаем количество лайков в ответ
+            commentCount: Number(post.commentCount),
+            likeCount: Number(post.likeCount),
+            currentUserLiked: currentUserId ? post.currentUserLiked > 0 : false // текущему пользователю доступна информация о лайках
         }));
     }
 
     @Get('/:id')
-    async getPost(@Param('id') postId: number, @CurrentUser({ required: true }) user: User) {
+    async getPost(@Param('id') postId: number, @CurrentUser() user?: User) { // Также делаем user опциональным
+        const currentUserId = user?.id || null;
+
         const post = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
             .leftJoin("post.comments", "comments")
-            .leftJoin("post.likes", "likes") 
-            .leftJoinAndSelect("likes.user", "likeUser", "likeUser.id = :currentUserId", { currentUserId: user.id })
+            .leftJoin("post.likes", "likes")
+            .leftJoinAndSelect("likes.user", "likeUser", "likeUser.id = :currentUserId", { currentUserId })
             .select([
                 "post",
                 "user.id",
                 "user.username",
-                "COUNT(DISTINCT comments.id) AS commentCount", // Используйте DISTINCT для подсчета комментариев
-                "COUNT(DISTINCT likes.id) AS likeCount" ,
-                "COUNT(DISTINCT likeUser.id) AS currentUserLiked"
+                "COUNT(DISTINCT comments.id) AS commentCount",
+                "COUNT(DISTINCT likes.id) AS likeCount",
+                "SUM(CASE WHEN likeUser.id = :currentUserId THEN 1 ELSE 0 END) AS currentUserLiked"
             ])
             .where("post.id = :id", { id: postId })
             .groupBy("post.id")
             .addGroupBy("user.id")
             .addGroupBy("user.username")
+            .setParameter("currentUserId", currentUserId)
             .getRawOne();
 
         if (!post) throw new HttpError(404, "Post not found");
@@ -79,11 +87,11 @@ export class PostController {
                 id: post.user_id,
                 username: post.user_username,
             },
-            commentCount: post.commentCount,
-            likeCount: post.likeCount ,
-            currentUserLiked: post.currentUserLiked > 0
+            commentCount: Number(post.commentCount),
+            likeCount: Number(post.likeCount),
+            currentUserLiked: currentUserId ? post.currentUserLiked > 0 : false 
         };
-    }
+    }   
 
     @Post('/')
     @UseBefore(MulterUpload)
