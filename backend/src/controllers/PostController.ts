@@ -15,34 +15,36 @@ export class PostController {
     async getAllPosts(
         @CurrentUser({ required: true }) user: User,
         @QueryParam('page') page: number = 1,
-        @QueryParam('limit') limit: number = 10
-    ) {
+        @QueryParam('limit') limit: number = 10) {
         const currentUserId = user?.id || null;
-        const [result, total] = await PostRepository.createQueryBuilder("post")
-            .leftJoinAndSelect("post.user", "user")
-            .orderBy("post.datetime", "DESC")
-            .skip((page - 1) * limit)
-            .take(limit)
-            .getManyAndCount();
-
-        const postsQuery = PostRepository.createQueryBuilder("post")
+        const { entities, raw } = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
             .loadRelationCountAndMap("post.commentCount", "post.comments")
             .loadRelationCountAndMap("post.likeCount", "post.likes")
-            .where('post.id IN (:...postIds)', { postIds: result.map(post => post.id) }) // Фильтруем только нужные посты
-            .orderBy("post.datetime", "DESC");
+            .addSelect(subQuery => {
+                return subQuery
+                    .select("COUNT(like.id) > 0", "liked")
+                    .from(Like, "like")
+                    .where("like.postId = post.id")
+                    .andWhere("like.userId = :currentUserId", { currentUserId })
+                    .groupBy("like.postId");
+            }, "post_liked")
+            .orderBy("post.datetime", "DESC")
+            .skip((page - 1) * limit)
+            .take(limit)
+            .getRawAndEntities();
 
-        const { entities, raw } = await postsQuery.getRawAndEntities();
-
-        const dataWithLikesAndCounts = entities.map(post => {
-            const postRaw = raw.find(rawPost => rawPost.post_id === post.id);
+        // Преобразуем raw данные
+        const dataWithLikesAndCounts = entities.map((entity, index) => {
             return {
-                ...post,
-                currentUserLiked: postRaw ? Boolean(postRaw.post_liked) : false,
-                commentCount: postRaw ? Number(postRaw.post_commentCount) : 0,
-                likeCount: postRaw ? Number(postRaw.post_likeCount) : 0
+                ...entity,
+                currentUserLiked: raw[index].post_liked === '1', // или приведите к Boolean, в зависимости от возвращаемых значений
+                commentCount: parseInt(raw[index].post_commentCount),
+                likeCount: parseInt(raw[index].post_likeCount)
             };
         });
+
+        const total = await PostRepository.count();
 
         return {
             data: dataWithLikesAndCounts,
