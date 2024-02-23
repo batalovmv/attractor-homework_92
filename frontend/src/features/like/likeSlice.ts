@@ -74,7 +74,7 @@ const likeSlice = createSlice({
             .addCase(likePost.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error as Error;
-            });
+            })
             .addCase(unlikePost.pending, (state) => {
                 state.loading = true;
             })
