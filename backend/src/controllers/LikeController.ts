@@ -27,7 +27,7 @@ export class LikeController {
         like.user = user;
         await LikeRepository.save(like);
 
-        return { message: 'Liked successfully' };
+        return { message: 'Liked successfully', like: 'like', existingLike:'existingLike' };
     }
 
     @Delete('/post/:postId')
