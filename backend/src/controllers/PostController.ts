@@ -58,7 +58,7 @@ export class PostController {
             const postExtra = postsLikesAndComments.find(p => p.id === post.id);
             return {
                 ...post,
-                currentUserLiked: postExtra ? postExtra.currentUserLiked : false,
+                currentUserLiked: postExtra ? Boolean(postExtra.currentUserLiked) : false,
                 commentCount: postExtra ? parseInt(postExtra.commentCount) : 0,
                 likeCount: postExtra ? parseInt(postExtra.likeCount) : 0,
             };
