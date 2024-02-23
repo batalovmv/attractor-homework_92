@@ -21,6 +21,9 @@ export const fetchPosts = createAsyncThunk(
     async (_, { getState, rejectWithValue }) => {
         try {
             const token = (getState() as RootState).user.userInfo?.token;
+            if (!token) {
+                throw new Error('Token not found');
+            }
             const response = await axiosInstance.get<IPost[]>("/posts", {
                 headers: { Authorization: `Bearer ${token}` },
             });
