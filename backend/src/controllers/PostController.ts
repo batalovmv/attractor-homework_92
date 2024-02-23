@@ -6,6 +6,7 @@ import { request } from "express";
 import { MulterUpload } from "../multer/uploadPostPhoto";
 import { User } from "../entities/user.entity";
 import { CommentRepository } from "../repositories/blogComment.repository";
+import { Like } from "../entities/like.entity";
 
 @JsonController('/posts')
 export class PostController {
@@ -14,15 +15,28 @@ export class PostController {
     @Get('/')
     async getAllPosts(@CurrentUser() user?: User) {
         const currentUserId = user?.id || null;
-
         const posts = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
             .leftJoin("post.comments", "comments")
             .leftJoin("post.likes", "likes")
-            .leftJoinAndSelect("likes.user", "likeUser")
-            .addSelect("COUNT(DISTINCT comments.id)", "commentCount")
-            .addSelect("COUNT(DISTINCT likes.id)", "likeCount")
-            .addSelect("SUM(CASE WHEN likes.userId = :currentUserId THEN 1 ELSE 0 END)", "currentUserLiked")
+            .select([
+                "post.id",
+                "post.title",
+                "post.description",
+                "post.image",
+                "post.datetime",
+                "user.id",
+                "user.username",
+                "COUNT(DISTINCT comments.id) AS commentCount",
+                "COUNT(DISTINCT likes.id) AS likeCount"
+            ])
+            .addSelect(subQuery => {
+                return subQuery
+                    .select("CASE WHEN COUNT(likeUser.id) > 0 THEN true ELSE false END")
+                    .from(Like, "likeUser")
+                    .where("likeUser.postId = post.id")
+                    .andWhere("likeUser.userId = :currentUserId", { currentUserId });
+            }, "currentUserLiked")
             .groupBy("post.id")
             .addGroupBy("user.id")
             .orderBy("post.datetime", "DESC")
@@ -41,41 +55,31 @@ export class PostController {
             },
             commentCount: Number(post.commentCount),
             likeCount: Number(post.likeCount),
-            currentUserLiked: currentUserId ? Number(post.currentUserLiked) > 0 : false
+            currentUserLiked: post.currentUserLiked === 'true' // преобразуем строку 'true' или 'false' в boolean
         }));
     }
 
-    // Для getPost
     @Get('/:id')
-    async getPost(@Param('id') postId: number, @CurrentUser() user?: User) {
+    async getPost(@Param('id') postId: number, @CurrentUser() user?: User) { // Также делаем user опциональным
         const currentUserId = user?.id || null;
 
         const post = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
             .leftJoin("post.comments", "comments")
             .leftJoin("post.likes", "likes")
-            .addSelect(subQuery => {
-                return subQuery
-                    .select("COUNT(DISTINCT comments.id)", "commentCount")
-                    .from("comment", "comments")
-                    .where("comments.postId = post.id");
-            }, "commentCount")
-            .addSelect(subQuery => {
-                return subQuery
-                    .select("COUNT(DISTINCT likes.id)", "likeCount")
-                    .from("like", "likes")
-                    .where("likes.postId = post.id");
-            }, "likeCount")
-            .addSelect(subQuery => {
-                return subQuery
-                    .select("CASE WHEN COUNT(likeUser) > 0 THEN true ELSE false END", "currentUserLiked")
-                    .from("like", "likeUser")
-                    .where("likeUser.postId = post.id")
-                    .andWhere("likeUser.userId = :currentUserId", { currentUserId });
-            }, "currentUserLiked")
+            .leftJoinAndSelect("likes.user", "likeUser", "likeUser.id = :currentUserId", { currentUserId })
+            .select([
+                "post",
+                "user.id",
+                "user.username",
+                "COUNT(DISTINCT comments.id) AS commentCount",
+                "COUNT(DISTINCT likes.id) AS likeCount",
+                "SUM(CASE WHEN likeUser.id = :currentUserId THEN 1 ELSE 0 END) AS currentUserLiked"
+            ])
             .where("post.id = :id", { id: postId })
             .groupBy("post.id")
             .addGroupBy("user.id")
+            .addGroupBy("user.username")
             .setParameter("currentUserId", currentUserId)
             .getRawOne();
 
@@ -93,7 +97,7 @@ export class PostController {
             },
             commentCount: Number(post.commentCount),
             likeCount: Number(post.likeCount),
-            currentUserLiked: Number(post.currentUserLiked) > 0,
+            currentUserLiked: currentUserId ? post.currentUserLiked > 0 : false
         };
     }  
 
