@@ -62,9 +62,6 @@ const likeSlice = createSlice({
             .addCase(likePost.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(likePost.fulfilled, (state) => {
-                state.loading = false;
-            })
             .addCase(likePost.fulfilled, (state, action) => {
                 state.loading = false;
                 const postId = action.meta.arg;
@@ -74,6 +71,10 @@ const likeSlice = createSlice({
                     post.currentUserLiked = true;
                 }
             })
+            .addCase(likePost.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error as Error;
+            });
             .addCase(unlikePost.pending, (state) => {
                 state.loading = true;
             })
