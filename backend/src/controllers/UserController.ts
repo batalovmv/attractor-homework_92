@@ -91,7 +91,7 @@ export class UserController {
 
         // Вернуть оба токена в ответе
         return {
-            accessToken: accessToken,
+            token: accessToken,
             refreshToken: refreshToken,
             username: user.username,
             id: user.id
