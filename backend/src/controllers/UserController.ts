@@ -75,13 +75,27 @@ export class UserController {
             throw new UnauthorizedError("Неверный пароль");
         }
 
-        const token = jwt.sign(
+        // Access token, который вы уже создаете
+        const accessToken = jwt.sign(
             { id: user.id, username: user.username },
             JWT_SECRET,
             { expiresIn: '1h' }
         );
 
-        return { token: token, username: user.username, id: user.id };
+        // Refresh token с более длительным сроком жизни
+        const refreshToken = jwt.sign(
+            { id: user.id, username: user.username },
+            JWT_SECRET, // Вы должны использовать другой секрет для refresh token
+            { expiresIn: '7d' } // Пример срока жизни refresh token - 7 дней
+        );
+
+        // Вернуть оба токена в ответе
+        return {
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            username: user.username,
+            id: user.id
+        };
     }
 
     @Post('/refresh')
