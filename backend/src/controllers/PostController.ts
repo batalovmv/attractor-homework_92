@@ -32,10 +32,13 @@ export class PostController {
             ])
             .addSelect(subQuery => {
                 return subQuery
-                    .select("CASE WHEN COUNT(likeUser.id) > 0 THEN true ELSE false END")
+                    .select("CASE WHEN COUNT(likeUser) > 0 THEN 'true' ELSE 'false' END")
                     .from(Like, "likeUser")
                     .where("likeUser.postId = post.id")
-                    .andWhere("likeUser.userId = :currentUserId", { currentUserId });
+                    .andWhere("likeUser.userId = :currentUserId", { currentUserId })
+                    .groupBy("likeUser.postId"); // Группировка по postId, чтобы вернуть результат для каждого поста
+            }, "currentUserLiked")
+                    
             }, "currentUserLiked")
             .groupBy("post.id")
             .addGroupBy("user.id")
