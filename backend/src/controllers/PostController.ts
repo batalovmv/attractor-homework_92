@@ -17,40 +17,32 @@ export class PostController {
 
         const posts = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
-            .leftJoinAndSelect("post.comments", "comments")
-            .leftJoinAndSelect("post.likes", "likes")
-            .loadRelationCountAndMap('post.commentCount', 'post.comments')
-            .loadRelationCountAndMap('post.likeCount', 'post.likes')
-            .addSelect(subQuery => {
-                return subQuery
-                    .select("count(like1.id)", "currentUserLiked")
-                    .from("like", "like1")
-                    .where("like1.postId = post.id AND like1.userId = :currentUserId", { currentUserId });
-            }, "currentUserLiked")
-            .where("post.deleted = :deleted", { deleted: false })
+            .leftJoin("post.comments", "comments")
+            .leftJoin("post.likes", "likes")
+            .leftJoinAndSelect("likes.user", "likeUser")
+            .addSelect("COUNT(DISTINCT comments.id)", "commentCount")
+            .addSelect("COUNT(DISTINCT likes.id)", "likeCount")
+            .addSelect("SUM(CASE WHEN likes.userId = :currentUserId THEN 1 ELSE 0 END)", "currentUserLiked")
             .groupBy("post.id")
             .addGroupBy("user.id")
             .orderBy("post.datetime", "DESC")
-            .getRawAndEntities();
+            .setParameter("currentUserId", currentUserId)
+            .getRawMany();
 
-        return posts.entities.map((post, index) => {
-            const raw = posts.raw[index];
-            return {
-                id: post.id,
-                title: post.title,
-                description: post.description,
-                image: post.image,
-                datetime: post.datetime,
-                user: {
-                    id: post.user.id,
-                    username: post.user.username,
-                },
-                commentCount: raw.post_commentCount,
-                likeCount: raw.post_likeCount,
-                currentUserLiked: raw.currentUserLiked > 0
-            };
-        });
-    
+        return posts.map(post => ({
+            id: post.post_id,
+            title: post.post_title,
+            description: post.post_description,
+            image: post.post_image,
+            datetime: post.post_datetime,
+            user: {
+                id: post.user_id,
+                username: post.user_username,
+            },
+            commentCount: Number(post.commentCount),
+            likeCount: Number(post.likeCount),
+            currentUserLiked: currentUserId ? Number(post.currentUserLiked) > 0 : false
+        }));
     }
 
     // Для getPost
