@@ -1,7 +1,7 @@
 import {Container} from "@mui/material";
 import "./App.css";
 import AppToolbar from "./components/UI/AppToolbar/AppToolbar";
-import { HashRouter, Route,Routes } from "react-router-dom";
+import { Route,Routes } from "react-router-dom";
 import RegisterPage from "./containers/RegisterPage/RegisterPage";
 import PostsPage from "./containers/post/PostsPage";
 import PostDetailsPage from "./containers/post/PostDetailsPage";
