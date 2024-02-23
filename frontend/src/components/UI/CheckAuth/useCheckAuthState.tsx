@@ -35,9 +35,11 @@ const useCheckAuthState = () => {
                         dispatch(logoutUser());
                     }
                 } else {
+                    console.error('Token decode failed 2:');
                     dispatch(logoutUser());
                 }
             } else {
+                console.error('Token decode failed 3:');
                 dispatch(logoutUser());
             }
         }
