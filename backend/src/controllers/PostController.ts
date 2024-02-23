@@ -32,10 +32,11 @@ export class PostController {
             ])
             .addSelect((subQuery) => {
                 return subQuery
-                    .select("CASE WHEN COUNT(likeUser.id) > 0 THEN TRUE ELSE FALSE END", "currentUserLiked")
+                    .select("IF(COUNT(likeUser.id) > 0, TRUE, FALSE)", "currentUserLiked")
                     .from(Like, "likeUser")
                     .where("likeUser.postId = post.id")
                     .andWhere("likeUser.userId = :currentUserId", { currentUserId })
+                    // Это важно: подзапрос должен возвращать значение для каждого поста
                     .groupBy("likeUser.postId")
             }, "currentUserLiked")
                     
@@ -57,7 +58,7 @@ export class PostController {
             },
             commentCount: Number(post.commentCount),
             likeCount: Number(post.likeCount),
-            currentUserLiked: post.currentUserLiked === 'true' // преобразуем строку 'true' или 'false' в boolean
+            currentUserLiked: post.currentUserLiked === 'true' 
         }));
     }
 
