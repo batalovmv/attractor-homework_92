@@ -15,39 +15,56 @@ export class PostController {
     async getAllPosts(
         @CurrentUser({ required: true }) user: User,
         @QueryParam('page') page: number = 1,
-        @QueryParam('limit') limit: number = 10) {
+        @QueryParam('limit') limit: number = 10
+    ) {
         const currentUserId = user?.id || null;
+
+        // Получаем посты с пагинацией
         const [result, total] = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
-            // ... (остальные join)
             .orderBy("post.datetime", "DESC")
             .skip((page - 1) * limit)
             .take(limit)
             .getManyAndCount();
 
+        // Получаем ID постов для дальнейшего запроса
         const postIds = result.map(post => post.id);
 
-        // Получаем комментарии и лайки для каждого поста
-        const postsLikesAndComments = await PostRepository.createQueryBuilder("post")
+        // Формируем подзапрос для количества комментариев
+        const commentsCount = await PostRepository.createQueryBuilder("post")
             .select("post.id", "id")
             .addSelect(subQuery => {
                 return subQuery
-                    .select("COUNT(comment.id)", "commentCount")
-                    .from(BlogComment, "comment")
-                    .where("comment.postId = post.id")
+                    .select("COUNT(comment.id)", "count")
+                    .from(Comment, "comment")
+                    .where("comment.postId = post.id");
             }, "commentCount")
+            .where("post.id IN (:...postIds)", { postIds })
+            .groupBy("post.id")
+            .getRawMany();
+
+        // Формируем подзапрос для количества лайков
+        const likesCount = await PostRepository.createQueryBuilder("post")
+            .select("post.id", "id")
             .addSelect(subQuery => {
                 return subQuery
-                    .select("COUNT(like.id)", "likeCount")
+                    .select("COUNT(like.id)", "count")
                     .from(Like, "like")
-                    .where("like.postId = post.id")
+                    .where("like.postId = post.id");
             }, "likeCount")
+            .where("post.id IN (:...postIds)", { postIds })
+            .groupBy("post.id")
+            .getRawMany();
+
+        // Формируем подзапрос для проверки лайка текущего пользователя
+        const currentUserLikes = await PostRepository.createQueryBuilder("post")
+            .select("post.id", "id")
             .addSelect(subQuery => {
                 return subQuery
-                    .select("CASE WHEN COUNT(like.id) > 0 THEN true ELSE false END", "currentUserLiked")
+                    .select("CASE WHEN COUNT(like.id) > 0 THEN TRUE ELSE FALSE END", "liked")
                     .from(Like, "like")
                     .where("like.postId = post.id")
-                    .andWhere("like.userId = :currentUserId", { currentUserId })
+                    .andWhere("like.userId = :currentUserId", { currentUserId });
             }, "currentUserLiked")
             .where("post.id IN (:...postIds)", { postIds })
             .groupBy("post.id")
@@ -55,15 +72,19 @@ export class PostController {
 
         // Маппинг сырых данных к сущностям
         const dataWithLikesAndCounts = result.map(post => {
-            const postExtra = postsLikesAndComments.find(p => p.id === post.id);
+            const commentData = commentsCount.find(c => c.id === post.id) || { commentCount: 0 };
+            const likeData = likesCount.find(l => l.id === post.id) || { likeCount: 0 };
+            const currentUserLikeData = currentUserLikes.find(u => u.id === post.id) || { currentUserLiked: false };
+
             return {
                 ...post,
-                currentUserLiked: postExtra ? Boolean(postExtra.currentUserLiked) : false,
-                commentCount: postExtra ? parseInt(postExtra.commentCount) : 0,
-                likeCount: postExtra ? parseInt(postExtra.likeCount) : 0,
+                commentCount: parseInt(commentData.commentCount, 10),
+                likeCount: parseInt(likeData.likeCount, 10),
+                currentUserLiked: Boolean(currentUserLikeData.currentUserLiked)
             };
         });
 
+        // Возвращаем данные с пагинацией
         return {
             data: dataWithLikesAndCounts,
             count: total,
