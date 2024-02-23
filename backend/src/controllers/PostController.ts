@@ -43,31 +43,24 @@ export class PostController {
 
         entities.forEach((post, index) => {
             post.currentUserLiked = Boolean(raw[index].post_liked);
-            post.commentCount = raw[index].post_commentCount; 
-            post.likeCount = raw[index].post_likeCount; 
+            post.commentCount = Number(raw[index].post_commentCount); 
+            post.likeCount = Number(raw[index].post_likeCount); 
         });
         const dataWithLikesAndCounts = result.map((post) => {
             const postRaw = raw.find(rawPost => rawPost.post_id === post.id);
-            if (postRaw) {
-                return {
-                    ...post,
-                    currentUserLiked: Boolean(postRaw.post_liked),
-                    commentCount: postRaw.post_commentCount,   // Убедитесь, что эти значения существуют в postRaw
-                    likeCount: postRaw.post_likeCount          // и добавляются к каждому посту
-                };
-            }
-            // Если postRaw не найден, возможно, стоит обработать этот случай
-            return post;
+            return {
+                ...post,
+                currentUserLiked: Boolean(postRaw.post_liked),
+                commentCount: Number(postRaw.post_commentCount), 
+                    likeCount: Number(postRaw.post_likeCount) 
+            };
         });
-
-        // После этих изменений возвращаемый ответ должен включать commentCount и likeCount.
         return {
             data: dataWithLikesAndCounts,
             count: total,
             currentPage: page,
             lastPage: Math.ceil(total / limit)
         };
-        
        
     }
 
