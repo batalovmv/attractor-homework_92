@@ -10,7 +10,7 @@ import LoginPage from "./containers/LoginPage/LoginPage";
 import NewPost from "./containers/post/NewPost";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
-import userSlice, { loadFromLocalStorage, logoutUser } from "./features/user/userSlice";
+import userSlice, { loadFromLocalStorage, loginUser, logoutUser } from "./features/user/userSlice";
 import { useEffect } from "react"
 import FullScreenModal from "./components/UI/MailModal/FullScreenModal";
 
@@ -35,7 +35,7 @@ function App() {
                         console.log('Current time:', new Date());
                         if (!isTokenExpired) {
                             // Восстановление сессии пользователя
-                            dispatch(userSlice.actions.setUserInfo(userInfo));
+                            dispatch(loginUser(userInfo));
                         } else {
                             // Токен просрочен
                             dispatch(logoutUser());
