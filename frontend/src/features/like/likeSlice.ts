@@ -2,13 +2,17 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axiosInstance from "../../Api/axiosInstance";
 import { RootState } from "../../store";
 import { isAxiosError } from "axios";
+import { IPost } from "../../interfaces/IPost";
+
 
 interface LikeState {
+    posts: IPost[];
     error: Error | null;
     loading: boolean;
 }
 
 const initialState: LikeState = {
+    posts: [],
     error: null,
     loading: false,
 };
@@ -61,15 +65,26 @@ const likeSlice = createSlice({
             .addCase(likePost.fulfilled, (state) => {
                 state.loading = false;
             })
-            .addCase(likePost.rejected, (state, action) => {
+            .addCase(likePost.fulfilled, (state, action) => {
                 state.loading = false;
-                state.error = action.error as Error;
+                const postId = action.meta.arg;
+                const post = state.posts.find(p => p.id === postId);
+                if (post) {
+                    post.likeCount += 1;
+                    post.currentUserLiked = true;
+                }
             })
             .addCase(unlikePost.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(unlikePost.fulfilled, (state) => {
+            .addCase(unlikePost.fulfilled, (state, action) => {
                 state.loading = false;
+                const postId = action.meta.arg;
+                const post = state.posts.find(p => p.id === postId);
+                if (post) {
+                    post.likeCount -= 1;
+                    post.currentUserLiked = false;
+                }
             })
             .addCase(unlikePost.rejected, (state, action) => {
                 state.loading = false;
