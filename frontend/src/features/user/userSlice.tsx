@@ -186,6 +186,7 @@ const userSlice = createSlice({
                 state.loading = false;
                 state.loginError = null;
                 state.userInfo = action.payload;
+                state.authLoading = false
                 saveToLocalStorage('userInfo', state.userInfo);
             })
             .addCase(loginUser.rejected, (state, action) => {

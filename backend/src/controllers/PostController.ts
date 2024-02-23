@@ -7,6 +7,7 @@ import { MulterUpload } from "../multer/uploadPostPhoto";
 import { User } from "../entities/user.entity";
 import { CommentRepository } from "../repositories/blogComment.repository";
 import { Like } from "../entities/like.entity";
+import { BlogComment } from "../entities/blogComment.entity";
 
 @JsonController('/posts')
 export class PostController {
@@ -18,7 +19,7 @@ export class PostController {
             .leftJoinAndSelect(
                 subQuery => {
                     return subQuery
-                        .from(Comment, "comment")
+                        .from(BlogComment, "comment")
                         .select("COUNT(*)", "count")
                         .addSelect("comment.postId", "postId")
                         .groupBy("comment.postId");
