@@ -28,4 +28,7 @@ export class Post {
 
   @OneToMany(() => Like, like => like.post)
   likes!: Like[];
+    commentCount?: number;
+    likeCount?: number;
+    currentUserLiked?: boolean;
 }

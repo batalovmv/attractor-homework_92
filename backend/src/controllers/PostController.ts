@@ -15,50 +15,28 @@ export class PostController {
         const currentUserId = user?.id || null;
         const posts = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
-            .leftJoin("post.comments", "comments")
-            .leftJoin("post.likes", "likes")
-            .select([
-                "post.id",
-                "post.title",
-                "post.description",
-                "post.image",
-                "post.datetime",
-                "user.id",
-                "user.username",
-                "COUNT(DISTINCT comments.id) AS commentCount",
-                "COUNT(DISTINCT likes.id) AS likeCount"
-            ])
+            .leftJoinAndSelect("post.comments", "comments")
+            .leftJoinAndSelect("post.likes", "likes")
+            .loadRelationCountAndMap('post.commentCount', 'post.comments')
+            .loadRelationCountAndMap('post.likeCount', 'post.likes')
             .addSelect(subQuery => {
                 return subQuery
-                    .select("CASE WHEN COUNT(likeUser) > 0 THEN true ELSE false END", "currentUserLiked")
-                    .from(Like, "likeUser")
-                    .where("likeUser.postId = post.id AND likeUser.userId = :currentUserId")
-                    .setParameter("currentUserId", currentUserId)
-            }, "currentUserLiked")
-                    
+                    .select("COUNT(*)", "currentUserLikedCount")
+                    .from(Like, "like")
+                    .where("like.postId = post.id AND like.userId = :currentUserId", { currentUserId });
+            }, "post.currentUserLiked")
             .groupBy("post.id")
             .addGroupBy("user.id")
+            // Если есть другие поля, которые вы хотите выбрать, добавьте их здесь
             .orderBy("post.datetime", "DESC")
-            .setParameter("currentUserId", currentUserId)
-            .getRawMany();
+            .getMany();
 
-        return posts.map(post => ({
-            id: post.post_id,
-            title: post.post_title,
-            description: post.post_description,
-            image: post.post_image,
-            datetime: post.post_datetime,
-            user: {
-                id: post.user_id,
-                username: post.user_username,
-            },
-            commentCount: Number(post.commentCount),
-            likeCount: Number(post.likeCount),
-            currentUserLiked: post.currentUserLiked === 'TRUE' || post.currentUserLiked === true,
-            currentUserLiked1: post.currentUserLiked === '1' || post.currentUserLiked === 1,
+        // Здесь мы преобразовываем число лайков в булево значение
+        posts.forEach(post => {
+            post.currentUserLiked = Number(post.currentUserLiked) > 0;
+        });
 
-            current: user
-        }));
+        return posts;
     }
 
     @Get('/:id')
