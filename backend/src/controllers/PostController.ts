@@ -30,11 +30,10 @@ export class PostController {
             ])
             .addSelect(subQuery => {
                 return subQuery
-                    .select("CASE WHEN COUNT(likeUser.id) > 0 THEN true ELSE false END", "currentUserLiked")
+                    .select("CASE WHEN COUNT(likeUser) > 0 THEN true ELSE false END", "currentUserLiked")
                     .from(Like, "likeUser")
-                    .where("likeUser.postId = post.id")
-                    .andWhere("likeUser.userId = :currentUserId", { currentUserId })
-                    .groupBy("likeUser.postId")
+                    .where("likeUser.postId = post.id AND likeUser.userId = :currentUserId")
+                    .setParameter("currentUserId", currentUserId)
             }, "currentUserLiked")
                     
             .groupBy("post.id")
@@ -55,7 +54,9 @@ export class PostController {
             },
             commentCount: Number(post.commentCount),
             likeCount: Number(post.likeCount),
-            currentUserLiked: post.currentUserLiked === 'TRUE' || post.currentUserLiked === true ,
+            currentUserLiked: post.currentUserLiked === 'TRUE' || post.currentUserLiked === true,
+            currentUserLiked1: post.currentUserLiked === '1' || post.currentUserLiked === 1,
+
             current: user
         }));
     }
