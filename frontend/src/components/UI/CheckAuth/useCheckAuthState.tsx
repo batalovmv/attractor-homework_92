@@ -9,18 +9,25 @@ const useCheckAuthState = () => {
     useEffect(() => {
         async function checkAuthState() {
             const userInfoString = localStorage.getItem('userInfo');
+            console.log('userInfoString', userInfoString)
             if (userInfoString) {
                 const userInfo = JSON.parse(userInfoString);
+                console.log(`userInfoString`, userInfoString);
                 const token = userInfo?.token;
-                const refreshToken = userInfo?.refreshToken; // Предполагаем, что refreshToken хранится вместе с userInfo
+                console.log(`token`, token);
+                const refreshToken = userInfo?.refreshToken; 
+                console.log(`refreshToken`, refreshToken);
 
                 if (token && refreshToken) {
                     try {
                         const decodedToken = jwtDecode<JwtPayload>(token);
                         // Если токен истек, но есть refreshToken, попытаемся обновить токен
+                        console.log(`decodedToken`, decodedToken);
                         if (decodedToken.exp && typeof decodedToken.exp === 'number' && Date.now() >= decodedToken.exp * 1000) {
+                            console.log(`refreshToken`, refreshToken);
                             dispatch(refreshToken({ refreshToken }));
                         } else {
+                            console.log(`userInfo`, userInfo);
                             dispatch(loginUser(userInfo));
                         }
                     } catch (error) {
