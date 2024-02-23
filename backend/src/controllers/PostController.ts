@@ -21,7 +21,7 @@ export class PostController {
             .loadRelationCountAndMap("post.likeCount", "post.likes")
             .addSelect(subQuery => {
                 return subQuery
-                    .select("IF(COUNT(like.id) > 0, true, false)", "liked")
+                    .select("COUNT(like.id) > 0", "liked")
                     .from(Like, "like")
                     .where("like.postId = post.id")
                     .andWhere("like.userId = :currentUserId", { currentUserId })
@@ -33,8 +33,7 @@ export class PostController {
         const { entities, raw } = posts;
 
         entities.forEach((post, index) => {
-            // Assign the raw boolean liked property to currentUserLiked in the entity.
-            post.currentUserLiked = raw[index].post_liked === 'true';
+            post.currentUserLiked = Boolean(raw[index].post_liked);
         });
 
         return entities;
