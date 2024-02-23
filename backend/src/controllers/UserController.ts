@@ -9,12 +9,17 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { sendConfirmationEmail } from "../auth/mailer";
 import { Response } from 'express';
 import { RefreshTokenDto } from "../dto/RefreshTokenDto";
-
+interface CustomJwtPayload extends JwtPayload {
+    id: string; 
+}
 if (!process.env.JWT_SECRET) {
     throw new Error('Переменная среды JWT_SECRET не определена');
+} 
+if (!process.env.REFRESH_TOKEN_SECRET) {
+    throw new Error('Переменная среды REFRESH_TOKEN_SECRET не определена');
 }
 const JWT_SECRET: string = process.env.JWT_SECRET;
-
+const REFRESH_TOKEN_SECRET: string = process.env.REFRESH_TOKEN_SECRET
 @JsonController('/users')
 export class UserController {
     @Post('/register')
@@ -59,37 +64,70 @@ export class UserController {
     @Post('/login')
     @HttpCode(200)
     async login(@Body() loginData: LoginUserDto) {
-        const user = await UserRepository.findOne({
-            where: {
-                username: loginData.username,
+        let user;
+        let accessToken;
+        let refreshToken;
+
+        if (loginData.refreshToken) {
+            try {
+                const decoded = jwt.verify(loginData.refreshToken, REFRESH_TOKEN_SECRET) as CustomJwtPayload;
+                const userId = parseInt(decoded.id, 10);
+                if (isNaN(userId)) {
+                    throw new Error("Invalid ID"); // Или другой тип ошибки, который вы хотите использовать
+                }
+
+                user = await UserRepository.findOne({
+                    where: {
+                        id: userId, // Используем числовое значение для id
+                    }
+                });
+
+                if (!user) {
+                    throw new UnauthorizedError("Пользователь не найден");
+                }
+
+                // Создаем новый access token
+                accessToken = jwt.sign(
+                    { id: user.id, username: user.username },
+                    JWT_SECRET,
+                    { expiresIn: '1h' }
+                );
+
+                refreshToken = loginData.refreshToken; // Возвращаем тот же refresh token
+            } catch (e) {
+                throw new UnauthorizedError("Неверный или истекший refresh token");
             }
-        });
+        } else if (loginData.username && loginData.password) {
+            user = await UserRepository.findOne({
+                where: {
+                    username: loginData.username,
+                }
+            });
 
-        if (!user) {
-            throw new UnauthorizedError("Пользователь не найден");
+            if (!user) {
+                throw new UnauthorizedError("Пользователь не найден");
+            }
+
+            const isPasswordMatch = await bcrypt.compare(loginData.password, user.password);
+            if (!isPasswordMatch) {
+                throw new UnauthorizedError("Неверный пароль");
+            }
+
+            accessToken = jwt.sign(
+                { id: user.id, username: user.username },
+                JWT_SECRET,
+                { expiresIn: '1h' }
+            );
+
+            refreshToken = jwt.sign(
+                { id: user.id, username: user.username },
+                REFRESH_TOKEN_SECRET,
+                { expiresIn: '7d' }
+            );
+        } else {
+            throw new UnauthorizedError("Необходимо предоставить данные для входа или refresh token");
         }
 
-        const isPasswordMatch = await bcrypt.compare(loginData.password, user.password);
-
-        if (!isPasswordMatch) {
-            throw new UnauthorizedError("Неверный пароль");
-        }
-
-        // Access token, который вы уже создаете
-        const accessToken = jwt.sign(
-            { id: user.id, username: user.username },
-            JWT_SECRET,
-            { expiresIn: '1h' }
-        );
-
-        // Refresh token с более длительным сроком жизни
-        const refreshToken = jwt.sign(
-            { id: user.id, username: user.username },
-            JWT_SECRET, // Вы должны использовать другой секрет для refresh token
-            { expiresIn: '7d' } // Пример срока жизни refresh token - 7 дней
-        );
-
-        // Вернуть оба токена в ответе
         return {
             token: accessToken,
             refreshToken: refreshToken,
