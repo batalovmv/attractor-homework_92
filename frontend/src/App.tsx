@@ -19,7 +19,7 @@ function App() {
     const authLoading = useAppSelector((state) => state.user.authLoading);
     useCheckAuthState()
     return (
-        <HashRouter>
+        <>
             <AppToolbar />
             <main>
                 <Container maxWidth="xl">
@@ -43,7 +43,7 @@ function App() {
                 </Container>
             </main>
             <FullScreenModal open={emailSent} />
-        </HashRouter>
+</>
     );
 }
 
