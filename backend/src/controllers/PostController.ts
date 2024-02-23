@@ -47,25 +47,27 @@ export class PostController {
             post.likeCount = raw[index].post_likeCount; 
         });
         const dataWithLikesAndCounts = result.map((post) => {
-            // Приведение post.id к строке, если rawPost.post_id является строкой
-            const postRaw = raw.find(rawPost => rawPost.post_id.toString() === post.id.toString());
+            const postRaw = raw.find(rawPost => rawPost.post_id === post.id);
             if (postRaw) {
                 return {
                     ...post,
                     currentUserLiked: Boolean(postRaw.post_liked),
-                    commentCount: postRaw.post_commentCount,
-                    likeCount: postRaw.post_likeCount
+                    commentCount: postRaw.post_commentCount,   // Убедитесь, что эти значения существуют в postRaw
+                    likeCount: postRaw.post_likeCount          // и добавляются к каждому посту
                 };
             }
-            // Если по какой-то причине postRaw не найден, вернуть пост без этих данных
+            // Если postRaw не найден, возможно, стоит обработать этот случай
             return post;
         });
+
+        // После этих изменений возвращаемый ответ должен включать commentCount и likeCount.
         return {
             data: dataWithLikesAndCounts,
             count: total,
             currentPage: page,
             lastPage: Math.ceil(total / limit)
         };
+        
        
     }
 
