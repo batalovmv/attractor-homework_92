@@ -12,28 +12,27 @@ export class PostController {
 
 
     @Get('/')
-    async getAllPosts(@CurrentUser() user?: User) {
+    async getAllPosts(@CurrentUser() user?: User) { 
         const currentUserId = user?.id || null;
 
         const posts = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
             .leftJoin("post.comments", "comments")
             .leftJoin("post.likes", "likes")
-            .leftJoin("likes.user", "likeUser")
+            .leftJoinAndSelect("likes.user", "likeUser", "likeUser.id = :currentUserId", { currentUserId })
             .select([
                 "post",
                 "user.id",
                 "user.username",
                 "COUNT(DISTINCT comments.id) AS commentCount",
                 "COUNT(DISTINCT likes.id) AS likeCount",
-                // Используем подзапрос для проверки, лайкнул ли текущий пользователь пост
-                "(SELECT COUNT(*) FROM like l WHERE l.postId = post.id AND l.userId = :currentUserId) AS currentUserLiked"
+                "SUM(CASE WHEN likeUser.id = :currentUserId THEN 1 ELSE 0 END) AS currentUserLiked"
             ])
             .groupBy("post.id")
             .addGroupBy("user.id")
             .addGroupBy("user.username")
             .orderBy("post.datetime", "DESC")
-            .setParameter("currentUserId", currentUserId)
+            .setParameter("currentUserId", currentUserId) 
             .getRawMany();
 
         return posts.map(post => ({
@@ -48,28 +47,28 @@ export class PostController {
             },
             commentCount: Number(post.commentCount),
             likeCount: Number(post.likeCount),
-            currentUserLiked: currentUserId ? post.currentUserLiked > 0 : false
+            currentUserLiked: currentUserId ? post.currentUserLiked > 0 : false // текущему пользователю доступна информация о лайках
         }));
     }
 
     @Get('/:id')
-    async getPost(@Param('id') postId: number, @CurrentUser() user?: User) {
+    async getPost(@Param('id') postId: number, @CurrentUser() user?: User) { // Также делаем user опциональным
         const currentUserId = user?.id || null;
 
         const post = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
             .leftJoin("post.comments", "comments")
             .leftJoin("post.likes", "likes")
-            .leftJoin("likes.user", "likeUser")
+            .leftJoinAndSelect("likes.user", "likeUser", "likeUser.id = :currentUserId", { currentUserId })
             .select([
                 "post",
                 "user.id",
                 "user.username",
                 "COUNT(DISTINCT comments.id) AS commentCount",
                 "COUNT(DISTINCT likes.id) AS likeCount",
-                "COUNT(likeUser.id) AS currentUserLiked"
+                "SUM(CASE WHEN likeUser.id = :currentUserId THEN 1 ELSE 0 END) AS currentUserLiked"
             ])
-            .where("post.id = :id AND (likeUser.id = :currentUserId OR likeUser.id IS NULL)", { id: postId, currentUserId })
+            .where("post.id = :id", { id: postId })
             .groupBy("post.id")
             .addGroupBy("user.id")
             .addGroupBy("user.username")
@@ -90,7 +89,7 @@ export class PostController {
             },
             commentCount: Number(post.commentCount),
             likeCount: Number(post.likeCount),
-            currentUserLiked: currentUserId ? post.currentUserLiked > 0 : false
+            currentUserLiked: currentUserId ? post.currentUserLiked > 0 : false 
         };
     }   
 
