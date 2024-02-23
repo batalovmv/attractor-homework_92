@@ -15,37 +15,35 @@ export class PostController {
     async getAllPosts(
         @CurrentUser({ required: true }) user: User,
         @QueryParam('page') page: number = 1,
-        @QueryParam('limit') limit: number = 10) {
+        @QueryParam('limit') limit: number = 10
+    ) {
         const currentUserId = user?.id || null;
-
-        const [posts, total] = await PostRepository.createQueryBuilder("post")
+        const [result, total] = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
             .orderBy("post.datetime", "DESC")
             .skip((page - 1) * limit)
             .take(limit)
             .getManyAndCount();
 
-        for (const post of posts) {
-            const commentCount = await PostRepository.createQueryBuilder("comment")
+        const postsWithCounts = await Promise.all(result.map(async (post) => {
+            const commentCountResult = await PostRepository.createQueryBuilder("comment")
                 .where("comment.postId = :postId", { postId: post.id })
                 .getCount();
 
-            const likeCount = await PostRepository.createQueryBuilder("like")
+            const likeCountResult = await PostRepository.createQueryBuilder("like")
                 .where("like.postId = :postId", { postId: post.id })
                 .getCount();
 
-            const userLiked = await PostRepository.createQueryBuilder("like")
-                .where("like.postId = :postId", { postId: post.id })
-                .andWhere("like.userId = :userId", { userId: currentUserId })
-                .getCount();
-
-            post.commentCount = commentCount;
-            post.likeCount = likeCount;
-            post.currentUserLiked = userLiked > 0;
-        }
+            // No need to fetch currentUserLiked again, as it's already in the post entity
+            return {
+                ...post,
+                commentCount: commentCountResult,
+                likeCount: likeCountResult
+            };
+        }));
 
         return {
-            data: posts,
+            data: postsWithCounts,
             count: total,
             currentPage: page,
             lastPage: Math.ceil(total / limit)
