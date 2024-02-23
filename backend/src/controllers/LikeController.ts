@@ -44,7 +44,7 @@ export class LikeController {
 
         await LikeRepository.remove(like);
 
-        return { message: 'Unliked successfully' };
+        return { message: 'Unliked successfully',user:user };
     }
 
     // Добавление лайка к комментарию
