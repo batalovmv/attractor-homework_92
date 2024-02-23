@@ -12,12 +12,16 @@ import { useAppSelector } from "./store/hooks";
 
 import FullScreenModal from "./components/UI/MailModal/FullScreenModal";
 import useCheckAuthState from "./components/UI/CheckAuth/useCheckAuthState";
+import { useEffect } from "react";
 
 function App() {
     const user = useAppSelector((state) => state.user.userInfo);
     const emailSent = useAppSelector((state) => state.user.emailSent);
     const authLoading = useAppSelector((state) => state.user.authLoading);
     useCheckAuthState()
+    useEffect(() => {
+       
+    }, [user, authLoading]);
     return (
         <>
             <AppToolbar />
