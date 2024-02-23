@@ -22,6 +22,7 @@ function App() {
     useEffect(() => {
        
     }, [user, authLoading]);
+    
     return (
         <>
             <AppToolbar />
