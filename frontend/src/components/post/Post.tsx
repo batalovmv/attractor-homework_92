@@ -14,7 +14,7 @@ import moment from "moment";
 import { apiURL } from "../../constants";
 import { Link } from "react-router-dom";
 import { DeleteForever, ThumbUpAlt } from "@mui/icons-material";
-import { MouseEventHandler } from "react";
+import { MouseEventHandler, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { RootState } from "../../store";
 import { likePost, unlikePost } from "../../features/like/likeSlice";
@@ -32,7 +32,9 @@ const StyledLink = styled(Link)(() => ({
 
 const Post = ({ post, onDelete }: Props) => {
     const dispatch = useAppDispatch();
-    const { loading} = useAppSelector((state: RootState) => state.likes);
+    const { loading } = useAppSelector((state: RootState) => state.likes);
+    const [likeCount, setLikeCount] = useState(post.likeCount);
+    const [currentUserLiked, setCurrentUserLiked] = useState(post.currentUserLiked);
     let cardImage: string | undefined = undefined;
     const currentUser = useAppSelector(
         (state: RootState) => state.user.userInfo?.username
@@ -42,12 +44,16 @@ const Post = ({ post, onDelete }: Props) => {
         cardImage = apiURL + "/uploads/post_photos/" + post.image;
     }
     const handleLikeClick = async () => {
-        if (loading) return; 
+        if (loading) return;
 
-        if (post.currentUserLiked) {
+        if (currentUserLiked) {
             await dispatch(unlikePost(post.id));
+            setLikeCount(likeCount - 1); // уменьшаем количество лайков
+            setCurrentUserLiked(false); // устанавливаем, что пользователь больше не лайкнул
         } else {
             await dispatch(likePost(post.id));
+            setLikeCount(likeCount + 1); // увеличиваем количество лайков
+            setCurrentUserLiked(true); // устанавливаем, что пользователь лайкнул
         }
     };
 
@@ -86,13 +92,13 @@ const Post = ({ post, onDelete }: Props) => {
                             <Box display={"flex"} alignItems={"center"} mt={2}>
                                 <IconButton
                                     onClick={handleLikeClick}
-                                    sx={{ color: post.currentUserLiked ? 'red' : 'inherit' }}
+                                    sx={{ color: currentUserLiked ? 'red' : 'inherit' }}
                                     disabled={loading}
                                 >
                                     <ThumbUpAlt />
                                 </IconButton>
                                 <Typography variant="body2" sx={{ mr: 2 }}>
-                                    {post.likeCount || 0} Likes
+                                    {likeCount} Likes 
                                 </Typography>
                                 <CommentIcon sx={{ mr: 1 }} />
                                 <Typography variant="body2">
