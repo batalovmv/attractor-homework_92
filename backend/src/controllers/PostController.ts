@@ -39,7 +39,6 @@ export class PostController {
                     .groupBy("likeUser.postId"); // Группировка по postId, чтобы вернуть результат для каждого поста
             }, "currentUserLiked")
                     
-            }, "currentUserLiked")
             .groupBy("post.id")
             .addGroupBy("user.id")
             .orderBy("post.datetime", "DESC")
