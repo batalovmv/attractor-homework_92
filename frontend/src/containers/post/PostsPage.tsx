@@ -17,7 +17,7 @@ const PostsPage = () => {
     useEffect(() => {
         dispatch(fetchPosts({ page: currentPage, perPage: postsPerPage }));
     }, [dispatch, currentPage, postsPerPage]);
-    const handlePageChange = (event:any, value:number) => {
+    const handlePageChange = (value:number) => {
         setCurrentPage(value);
     };
    
