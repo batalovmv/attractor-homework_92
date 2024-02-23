@@ -26,13 +26,9 @@ function App() {
 
             if (token) {
                 try {
-                    console.log('Token before decoding:', token);
                     const decodedToken = jwtDecode<JwtPayload>(token);
-                    console.log('Decoded token:', decodedToken);
                     if (decodedToken && typeof decodedToken.exp === 'number') {
                         const isTokenExpired = decodedToken.exp < Date.now() / 1000;
-                        console.log('Token expiration time:', new Date(decodedToken.exp * 1000));
-                        console.log('Current time:', new Date());
                         if (!isTokenExpired) {
                             // Восстановление сессии пользователя
                             dispatch(loginUser(userInfo));
@@ -48,10 +44,10 @@ function App() {
                     // Ошибка при декодировании токена
                     dispatch(logoutUser());
                 }
-            } else {
-                // Токена нет
-                dispatch(userSlice.actions.setAuthLoading(false));
             }
+
+            // Устанавливаем authLoading в false после проверки токена
+            dispatch(userSlice.actions.setAuthLoading(false));
         }
 
         checkAuthState();
