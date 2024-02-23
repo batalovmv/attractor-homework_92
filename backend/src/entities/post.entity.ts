@@ -37,9 +37,6 @@ export class Post {
 
     @Column({ nullable: true, select: false })
     likeCount?: number;
-    constructor() {
-        this.comments = [];
-        this.likes = [];
-    }
+   
 
 }
