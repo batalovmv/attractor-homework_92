@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { IUser } from "../../interfaces/IUser";
 import axiosInstance from "../../Api/axiosInstance";
 import { AxiosError } from "axios";
@@ -101,7 +101,7 @@ export const loginUser = createAsyncThunk<
 });
 
 export const refreshToken = createAsyncThunk<
-    { token: string },
+    { token: string; refreshToken: string }, // Теперь возвращаемый тип содержит и refreshToken
     { refreshToken: string },
     { rejectValue: string }
 >(
@@ -109,12 +109,15 @@ export const refreshToken = createAsyncThunk<
     async ({ refreshToken }, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.post<{ token: string }>("/auth/refresh", { refreshToken });
-            // Сохраняем новый токен в локальное хранилище
-            saveToLocalStorage('authToken', response.data.token);
-            return response.data;
+            // Предполагаем, что сервер возвращает и token и refreshToken
+            const data = response.data;
+            const newRefreshToken = refreshToken; // Получаем новый refreshToken как-то (зависит от API)
+            // Сохраняем новый токен и refreshToken в локальное хранилище
+            saveToLocalStorage('authData', { token: data.token, refreshToken: newRefreshToken });
+            return { token: data.token, refreshToken: newRefreshToken };
         } catch (err) {
             if (isAxiosError(err)) {
-                const error: AxiosError<userResponseError> = err;
+                const error: AxiosError<{ error: { message: string } }> = err;
                 // Возвращаем сообщение об ошибке через rejectWithValue
                 return rejectWithValue(
                     error.response?.data.error.message || "Internet connection error"
@@ -183,7 +186,7 @@ const userSlice = createSlice({
                 state.loading = false;
                 state.loginError = null;
                 state.userInfo = action.payload;
-                saveToLocalStorage('userInfo', action.payload);
+                saveToLocalStorage('userInfo', state.userInfo);
             })
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;
@@ -194,22 +197,15 @@ const userSlice = createSlice({
                 state.userInfo = null;
                 removeFromLocalStorage('userInfo');
             })
-            .addCase(refreshToken.fulfilled, (state, action) => {
+            .addCase(refreshToken.fulfilled, (state, action: PayloadAction<{ token: string; refreshToken: string }>) => {
                 state.loading = false;
                 state.authLoading = false;
 
-                // Если userInfo не null, просто обновляем токен
                 if (state.userInfo) {
                     state.userInfo.token = action.payload.token;
-                } else {
-                    // Если userInfo null, устанавливаем начальные данные пользователя
-                    // Здесь нужно установить все необходимые свойства, чтобы соответствовать типу IUser
-                    state.userInfo = {
-                        id: 0, // Вы должны предоставить реальный id, полученный от вашего API
-                        username: '', // Вы должны предоставить реальное имя пользователя, полученное от вашего API
-                        email: '', // Вы должны предоставить реальный email, полученный от вашего API
-                        token: action.payload.token
-                    };
+                    state.userInfo.refreshToken = action.payload.refreshToken;
+                    // Обновляем локальное хранилище
+                    saveToLocalStorage('userInfo', state.userInfo);
                 }
             })
             .addCase(refreshToken.rejected, (state, action) => {
