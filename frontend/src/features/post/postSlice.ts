@@ -20,11 +20,22 @@ const initialState: State = {
 
 export const fetchPosts = createAsyncThunk(
     "fetch/posts",
-    async (_, { getState }) => {
+    async (_, { getState, rejectWithValue }) => {
         const token = (getState() as RootState).user.userInfo?.token;
-        return await axiosInstance.get<IPost[]>("/posts", {
-            headers: { Authorization: `Bearer ${token}` },
-        }).then((res) => res.data);
+        try {
+            const response = await axiosInstance.get<IPost[]>("/posts", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            return response.data;
+        } catch (error) {
+            if (isAxiosError(error)) {
+                // Проверяем, является ли ошибка ошибкой Axios
+                return rejectWithValue(error.response?.data || "An error occurred");
+            } else {
+                // Ошибка не относится к Axios
+                return rejectWithValue("An error occurred");
+            }
+        }
     }
 );
 
