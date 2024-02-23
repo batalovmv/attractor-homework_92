@@ -18,39 +18,34 @@ export class PostController {
         @QueryParam('limit') limit: number = 10
     ) {
         const currentUserId = user?.id || null;
-        const queryBuilder = PostRepository.createQueryBuilder("post")
+        const [result, total] = await PostRepository.createQueryBuilder("post")
             .leftJoinAndSelect("post.user", "user")
             .orderBy("post.datetime", "DESC")
             .skip((page - 1) * limit)
-            .take(limit);
+            .take(limit)
+            .getManyAndCount();
 
-        // Получаем посты и общее количество для пагинации
-        const [posts, total] = await queryBuilder.getManyAndCount();
+        const postsQuery = PostRepository.createQueryBuilder("post")
+            .leftJoinAndSelect("post.user", "user")
+            .loadRelationCountAndMap("post.commentCount", "post.comments")
+            .loadRelationCountAndMap("post.likeCount", "post.likes")
+            .where('post.id IN (:...postIds)', { postIds: result.map(post => post.id) }) // Фильтруем только нужные посты
+            .orderBy("post.datetime", "DESC");
 
-        for (let post of posts) {
-            // Ensure the column name matches the one defined in your Comment entity
-            const commentCount = await PostRepository.createQueryBuilder("comment")
-                .where("comment.post = :postId", { postId: post.id })
-                .getCount();
+        const { entities, raw } = await postsQuery.getRawAndEntities();
 
-            // Ensure the column name matches the one defined in your Like entity
-            const likeCount = await PostRepository.createQueryBuilder("like")
-                .where("like.post = :postId", { postId: post.id })
-                .getCount();
-
-            // Check if the current user liked the post
-            const liked = await PostRepository.createQueryBuilder("like")
-                .where("like.post = :postId", { postId: post.id })
-                .andWhere("like.user = :userId", { userId: currentUserId })
-                .getCount();
-
-            post.commentCount = commentCount;
-            post.likeCount = likeCount;
-            post.currentUserLiked = liked > 0;
-        }
+        const dataWithLikesAndCounts = entities.map(post => {
+            const postRaw = raw.find(rawPost => rawPost.post_id === post.id);
+            return {
+                ...post,
+                currentUserLiked: postRaw ? Boolean(postRaw.post_liked) : false,
+                commentCount: postRaw ? Number(postRaw.post_commentCount) : 0,
+                likeCount: postRaw ? Number(postRaw.post_likeCount) : 0
+            };
+        });
 
         return {
-            data: posts,
+            data: dataWithLikesAndCounts,
             count: total,
             currentPage: page,
             lastPage: Math.ceil(total / limit)
