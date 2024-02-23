@@ -20,18 +20,29 @@ export class PostController {
             .leftJoinAndSelect("post.user", "user")
             .leftJoin("post.comments", "comments")
             .leftJoin("post.likes", "likes")
-            .loadRelationCountAndMap('post.commentCount', 'post.comments')
-            .loadRelationCountAndMap('post.likeCount', 'post.likes')
             .addSelect(subQuery => {
                 return subQuery
-                    .select("COUNT(likeUser.id)", "currentUserLiked")
+                    .select("COUNT(DISTINCT comments.id)", "commentCount")
+                    .from("comment", "comments")
+                    .where("comments.postId = post.id");
+            }, "commentCount")
+            .addSelect(subQuery => {
+                return subQuery
+                    .select("COUNT(DISTINCT likes.id)", "likeCount")
+                    .from("like", "likes")
+                    .where("likes.postId = post.id");
+            }, "likeCount")
+            .addSelect(subQuery => {
+                return subQuery
+                    .select("CASE WHEN COUNT(likeUser) > 0 THEN true ELSE false END", "currentUserLiked")
                     .from("like", "likeUser")
                     .where("likeUser.postId = post.id")
-                    .andWhere(currentUserId ? "likeUser.userId = :currentUserId" : "1=0", { currentUserId });
+                    .andWhere("likeUser.userId = :currentUserId", { currentUserId });
             }, "currentUserLiked")
             .groupBy("post.id")
             .addGroupBy("user.id")
             .orderBy("post.datetime", "DESC")
+            .setParameter("currentUserId", currentUserId)
             .getRawMany();
 
         return posts.map(post => ({
@@ -59,18 +70,29 @@ export class PostController {
             .leftJoinAndSelect("post.user", "user")
             .leftJoin("post.comments", "comments")
             .leftJoin("post.likes", "likes")
-            .loadRelationCountAndMap('post.commentCount', 'post.comments')
-            .loadRelationCountAndMap('post.likeCount', 'post.likes')
             .addSelect(subQuery => {
                 return subQuery
-                    .select("COUNT(likeUser.id)", "currentUserLiked")
+                    .select("COUNT(DISTINCT comments.id)", "commentCount")
+                    .from("comment", "comments")
+                    .where("comments.postId = post.id");
+            }, "commentCount")
+            .addSelect(subQuery => {
+                return subQuery
+                    .select("COUNT(DISTINCT likes.id)", "likeCount")
+                    .from("like", "likes")
+                    .where("likes.postId = post.id");
+            }, "likeCount")
+            .addSelect(subQuery => {
+                return subQuery
+                    .select("CASE WHEN COUNT(likeUser) > 0 THEN true ELSE false END", "currentUserLiked")
                     .from("like", "likeUser")
                     .where("likeUser.postId = post.id")
-                    .andWhere(currentUserId ? "likeUser.userId = :currentUserId" : "1=0", { currentUserId });
+                    .andWhere("likeUser.userId = :currentUserId", { currentUserId });
             }, "currentUserLiked")
             .where("post.id = :id", { id: postId })
             .groupBy("post.id")
             .addGroupBy("user.id")
+            .setParameter("currentUserId", currentUserId)
             .getRawOne();
 
         if (!post) throw new HttpError(404, "Post not found");
