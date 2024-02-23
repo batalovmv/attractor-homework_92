@@ -27,11 +27,11 @@ const useCheckAuthState = () => {
                         if (decodedToken.exp && typeof decodedToken.exp === 'number' && Date.now() >= decodedToken.exp * 1000) {
                             console.log(`refreshToken`, refreshToken);
                             dispatch(refreshToken({ refreshToken }));
-                            console.log('Dispatched action for refreshing token or logging in user.');
+                            console.log('Dispatched action for refreshing token or logging in user.1');
                         } else {
                             console.log(`userInfo`, userInfo);
                             dispatch(loginUser(userInfo));
-                            console.log('Dispatched action for refreshing token or logging in user.');
+                            console.log('Dispatched action for refreshing token or logging in user.2');
                         }
                     } catch (error) {
                         console.error('Token decode failed:', error);

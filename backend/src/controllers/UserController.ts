@@ -135,13 +135,24 @@ export class UserController {
             }
 
             // Выдаем новый access token
-            const newToken = jwt.sign(
+            const newAccessToken = jwt.sign(
                 { id: user.id, username: user.username },
                 JWT_SECRET,
                 { expiresIn: '1h' }
             );
 
-            return { token: newToken };
+            // Выдаем новый refresh token
+            const newRefreshToken = jwt.sign(
+                { id: user.id, username: user.username },
+                JWT_SECRET,
+                { expiresIn: '7d' } // Допустим, refresh token имеет срок жизни 7 дней
+            );
+
+            // Возвращаем новые токены
+            return {
+                token: newAccessToken,
+                refreshToken: newRefreshToken
+            };
 
         } catch (error) {
             throw new UnauthorizedError("Невалидный refresh token");
