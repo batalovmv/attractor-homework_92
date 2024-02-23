@@ -24,10 +24,10 @@ export class Post {
   user!: User;
 
     @OneToMany(() => BlogComment, comment => comment.post, { cascade: true, onDelete: "CASCADE" })
-    comments: BlogComment[] = [];
+    comments!: BlogComment[]
 
     @OneToMany(() => Like, like => like.post)
-    likes: Like[] = [];
+    likes!: Like[] 
 
     @Column({ nullable: true, select: false })
     currentUserLiked?: boolean;
@@ -37,5 +37,9 @@ export class Post {
 
     @Column({ nullable: true, select: false })
     likeCount?: number;
+    constructor() {
+        this.comments = [];
+        this.likes = [];
+    }
 
 }
