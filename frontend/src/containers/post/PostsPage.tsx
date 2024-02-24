@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 const PostsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage] = useState(10);
-    const { posts, pageCount } = useAppSelector((state) => state.post);
+    const { posts, pageCount, loading } = useAppSelector((state) => state.post);
     const dispatch = useAppDispatch();
     const user = useAppSelector((state) => state.user.userInfo);
     const authLoading = useAppSelector((state) => state.user.authLoading);
@@ -25,11 +25,11 @@ const PostsPage = () => {
 
     useEffect(() => {
         if (!user && !authLoading) {
-            navigate('/login'); 
-        } else {
+            navigate('/login');
+        } else if (user && !authLoading) {
             dispatch(fetchPosts({ page: currentPage, perPage: postsPerPage }));
         }
-    }, [user, authLoading, currentPage, postsPerPage, navigate]);
+    }, [user, authLoading, currentPage, postsPerPage, navigate, dispatch]);
 
   const deleteHandler = (id: number) => {
     dispatch(deletePost(id));
@@ -40,11 +40,9 @@ const PostsPage = () => {
             <Typography textAlign={"center"} variant="h4" padding={4}>
                 Posts
             </Typography>
-            {authLoading ? (
-                
+            {authLoading || loading ? ( 
                 <Typography textAlign={"center"}>Загрузка...</Typography>
             ) : !user ? (
-               
                 <Typography textAlign={"center"} color={"red"}>
                     Пожалуйста войдите в аккаунт для получения доступа к функционалу
                 </Typography>
