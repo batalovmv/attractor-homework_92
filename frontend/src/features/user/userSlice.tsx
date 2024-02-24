@@ -1,9 +1,10 @@
 import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { IUser } from "../../interfaces/IUser";
 import axiosInstance from "../../Api/axiosInstance";
-import { AxiosError } from "axios";
+import axios, { AxiosError } from "axios";
 import { isAxiosError } from "axios";
 import { RootState } from "../../store";
+import parseError, { ApiResponseError } from "../errors";
 
 interface userState {
     userInfo: IUser | null;
@@ -24,6 +25,8 @@ type userRequest = {
 type userResponseError = {
     error: { message: string };
 };
+
+
 
 type userResponseValidateError = { type: string; messages: string[] }[];
 const saveToLocalStorage = (key: string, value: any) => {
@@ -82,24 +85,20 @@ export const registerUser = createAsyncThunk<
 
 
 
-export const loginUser = createAsyncThunk<
-    IUser,
-    userRequest,
-    { rejectValue: string }
->("auth.login", async (userData, { rejectWithValue }) => {
-    try {
-        const response = await axiosInstance.post<IUser>("/users/login", userData);
-        return response.data;
-    } catch (err) {
-        if (isAxiosError(err)) {
-            const error: AxiosError<userResponseError> = err;
-            return rejectWithValue(
-                error.response?.data.error.message || "Internet connection error"
-            );
+export const loginUser = createAsyncThunk<IUser, userRequest, { rejectValue: ApiResponseError }>(
+    "auth.login",
+    async (userData, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.post<IUser>("/users/login", userData);
+            return response.data;
+        } catch (err) {
+            if (axios.isAxiosError(err) && err.response) {
+                return rejectWithValue(parseError(err.response));
+            }
+            throw err;
         }
-        throw err;
     }
-});
+);
 
 export const refreshToken = createAsyncThunk<
     { token: string; refreshToken: string }, // Теперь возвращаемый тип содержит и refreshToken
@@ -180,6 +179,7 @@ const userSlice = createSlice({
                         action.payload?.error.message ?? "Error occurred";
                 }
             })
+            
             .addCase(loginUser.pending, (state) => {
                 state.loading = true;
                 state.loginError = null;
@@ -193,9 +193,9 @@ const userSlice = createSlice({
             })
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;
-                state.loginError = action.payload || null;
+                const errorMessage = action.payload ? action.payload.message : 'Login failed due to an unknown error';
+                state.loginError = errorMessage;
             })
-            
             .addCase(logoutUser.fulfilled, (state) => {
                 state.userInfo = null;
                 removeFromLocalStorage('userInfo');
