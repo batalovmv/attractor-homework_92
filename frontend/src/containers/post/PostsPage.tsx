@@ -12,21 +12,21 @@ const PostsPage = () => {
     const dispatch = useAppDispatch();
     const user = useAppSelector((state) => state.user.userInfo);
     const authLoading = useAppSelector((state) => state.user.authLoading);
-    useEffect(() => {
-        dispatch(fetchPosts({ page: currentPage, perPage: postsPerPage }));
-    }, [ currentPage]);
+
     const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
         setCurrentPage(value);
     };
     const navigate = useNavigate();
-
     useEffect(() => {
-        if (user && !authLoading) {
-            dispatch(fetchPosts({ page: currentPage, perPage: postsPerPage }));
-        } else if (!user && !authLoading) {
+        if (!user && !authLoading) {
             navigate('/login');
         }
-    }, [user, authLoading, postsPerPage, navigate]);
+    }, [user, authLoading, navigate]);
+    useEffect(() => {
+        if (!authLoading) {
+            dispatch(fetchPosts({ page: currentPage, perPage: postsPerPage }));
+        }
+    }, [currentPage, dispatch, authLoading, postsPerPage]);
 
   const deleteHandler = (id: number) => {
     dispatch(deletePost(id));
