@@ -7,6 +7,8 @@ import {
   IconButton,
   Typography,
   styled,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { Comment as CommentIcon } from '@mui/icons-material';
 import { IPost } from "../../interfaces/IPost";
@@ -31,6 +33,8 @@ const StyledLink = styled(Link)(() => ({
 }));
 
 const Post = ({ post, onDelete }: Props) => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const dispatch = useAppDispatch();
     const { loading } = useAppSelector((state: RootState) => state.likes);
     const [likeCount, setLikeCount] = useState(post.likeCount);
@@ -60,10 +64,10 @@ const Post = ({ post, onDelete }: Props) => {
     return (
         <Box mb={4}>
             <Card elevation={1} sx={{ width: "100%" }}>
-                <Box display={"flex"} gap={1}>
+                <Box display={isMobile ? "block" : "flex"} gap={1}>
                     {cardImage ? (
                         <CardMedia
-                            sx={{ height: 200, width: 200 }}
+                            sx={{ height: isMobile ? 140 : 200, width: isMobile ? '100%' : 200 }} 
                             component="img"
                             alt="post image"
                             src={cardImage}
@@ -73,7 +77,7 @@ const Post = ({ post, onDelete }: Props) => {
                             <Typography variant="h6">No image</Typography>
                         </Box>
                     )}
-                    <Box display={"flex"} justifyContent={"space-between"} width={"100%"}>
+                    <Box display={"flex"} flexDirection={isMobile ? "column" : "row"} justifyContent={"space-between"} width={"100%"}>
                         <CardContent>
                             <Typography variant="h6">{formattedDate}</Typography>
                             <Typography
