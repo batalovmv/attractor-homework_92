@@ -31,15 +31,21 @@ function App() {
     const navigate = useNavigate();
     const [isAuthChecked, setIsAuthChecked] = useState(false);
     useCheckAuthState();
-
+    const checkAuthStatus = async () => {
+        // Предполагается, что этот метод изменит authLoading на false после проверки
+        await useCheckAuthState();
+    };
     useEffect(() => {
-        if (!authLoading) {
-            setIsAuthChecked(true);
+        checkAuthStatus();
+    }, []);
+    useEffect(() => {
+        if (authLoading === false) { // Если загрузка завершена
+            setIsAuthChecked(true);  // Обновляем состояние проверки аутентификации
             if (!user) {
-                navigate('/login');
+                navigate('/login'); // Если пользователь не аутентифицирован, перенаправляем на /login
             }
         }
-    }, [user, authLoading, navigate]);
+    }, [authLoading, user, navigate]);
 
     if (!isAuthChecked) {
         return (
