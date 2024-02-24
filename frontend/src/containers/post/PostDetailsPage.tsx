@@ -1,8 +1,8 @@
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-import { Box, Container, Paper, Typography } from "@mui/material";
+import { Box, Button, Container, Paper, Typography } from "@mui/material";
 import {
   createComment,
   deleteComment,
@@ -14,6 +14,8 @@ import CommentItem from "../../components/comments/CommentItem";
 import CommentForm from "../../components/comments/CommentForm";
 
 const PostDetailsPage = () => {
+    const [expanded, setExpanded] = useState(false);
+    const maxDescriptionLength = 100;
     const { id } = useParams<{ id: string }>();
     const dispatch = useAppDispatch();
 
@@ -22,7 +24,18 @@ const PostDetailsPage = () => {
     );
 
     const user = useAppSelector((state) => state.user.userInfo);
-
+    const toggleExpanded = () => {
+        setExpanded(!expanded);
+    };
+    const renderDate = (datetime:Date) => {
+        return moment(datetime).format('LL'); // 'LL' формат даты - September 4, 1986
+    };
+    const renderDescription = (description:string) => {
+        if (expanded || description.length <= maxDescriptionLength) {
+            return description;
+        }
+        return `${description.substring(0, maxDescriptionLength)}...`;
+    };
     useEffect(() => {
         if (id) {
             dispatch(fetchPost(Number(id)));
@@ -55,11 +68,16 @@ const PostDetailsPage = () => {
                     <Typography variant="h4" textAlign="center" gutterBottom>
                         {post.title}
                     </Typography>
-                    <Typography variant="subtitle1" textAlign="center" color="text.secondary">
-                        {moment(post.datetime).format('MMMM Do YYYY, h:mm a')} by {post.user.username}
-                    </Typography>
                     <Typography variant="body1" sx={{ wordWrap: 'break-word', mt: 1 }}>
-                        {post.description}
+                        {renderDescription(post.description)}
+                        {post.description.length > maxDescriptionLength && (
+                            <Button onClick={toggleExpanded}>
+                                {expanded ? 'Show Less' : 'Show More'}
+                            </Button>
+                        )}
+                    </Typography>
+                    <Typography variant="subtitle1" sx={{ position: 'absolute', bottom: 0, right: 0, p: 2 }} color="text.secondary">
+                        {renderDate(post.datetime)} by {post.user.username}
                     </Typography>
                 </Paper>
             )}
