@@ -62,64 +62,57 @@ const Post = ({ post, onDelete }: Props) => {
     };
     const formattedDate = moment(post.datetime).format("LLL");
     return (
-        <Box mb={4}>
-            <Card elevation={1} sx={{ width: "100%" }}>
-                <Box display={isMobile ? "block" : "flex"} gap={1}>
-                    {cardImage ? (
+        <Box mb={4} sx={{ width: '100%' }}>
+            <Card elevation={1}>
+                <Box display={isMobile ? "block" : "flex"} alignItems="start" gap={isMobile ? 0 : 1}>
+                    {cardImage && (
                         <CardMedia
-                            sx={{ height: isMobile ? 140 : 200, width: isMobile ? '100%' : 200 }} 
+                            sx={{ height: isMobile ? 140 : 200, width: isMobile ? '100%' : 200 }}
                             component="img"
                             alt="post image"
                             src={cardImage}
                         />
-                    ) : (
-                        <Box sx={{ padding: 5, border: "1px solid #ccc" }}>
-                            <Typography variant="h6">No image</Typography>
-                        </Box>
                     )}
-                    <Box display={"flex"} flexDirection={isMobile ? "column" : "row"} justifyContent={"space-between"} width={"100%"}>
-                        <CardContent>
-                            <Typography variant="h6">{formattedDate}</Typography>
-                            <Typography
-                                fontFamily={"monospace"}
-                            >{`by ${post.user.username}`}</Typography>
-
-                            <Typography
-                                variant="h5"
-                                component={StyledLink}
-                                to={`/posts/${post.id}`}
+                    <CardContent sx={{ flex: 1 }}>
+                        <Typography variant="subtitle1" color="textSecondary">
+                            {formattedDate}
+                        </Typography>
+                        <Typography variant="body2">{`by ${post.user.username}`}</Typography>
+                        <Typography
+                            variant="h6"
+                            component={StyledLink}
+                            to={`/posts/${post.id}`}
+                            sx={{ mt: 2, mb: 2 }}
+                        >
+                            {post.title}
+                        </Typography>
+                        <Box display="flex" alignItems="center" mb={2}>
+                            <IconButton
+                                onClick={handleLikeClick}
+                                sx={{ color: currentUserLiked ? 'red' : 'inherit' }}
+                                disabled={loading}
+                                size="large"
                             >
-                                {post.title}
+                                <ThumbUpAlt />
+                            </IconButton>
+                            <Typography variant="body2" sx={{ mr: 2 }}>
+                                {likeCount} Likes
                             </Typography>
-                            <Box display={"flex"} alignItems={"center"} mt={2}>
-                                <IconButton
-                                    onClick={handleLikeClick}
-                                    sx={{ color: currentUserLiked ? 'red' : 'inherit' }}
-                                    disabled={loading}
-                                >
-                                    <ThumbUpAlt />
-                                </IconButton>
-                                <Typography variant="body2" sx={{ mr: 2 }}>
-                                    {likeCount} Likes
-                                </Typography>
-                                {/* Обертка иконки комментария в StyledLink */}
-                                <StyledLink to={`/posts/${post.id}`}>
-                                    <CommentIcon sx={{ cursor: 'pointer', mr: 1 }} />
-                                </StyledLink>
-                                <Typography variant="body2">
-                                    {post.commentCount} Comments
-                                </Typography>
-                            </Box>
-                        </CardContent>
-
+                            <StyledLink to={`/posts/${post.id}`}>
+                                <CommentIcon sx={{ cursor: 'pointer', mr: 1 }} />
+                            </StyledLink>
+                            <Typography variant="body2">
+                                {post.commentCount} Comments
+                            </Typography>
+                        </Box>
                         {currentUser && currentUser === post.user.username && (
-                            <CardActions>
+                            <CardActions disableSpacing>
                                 <IconButton onClick={onDelete}>
                                     <DeleteForever />
                                 </IconButton>
                             </CardActions>
                         )}
-                    </Box>
+                    </CardContent>
                 </Box>
             </Card>
         </Box>
