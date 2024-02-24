@@ -6,34 +6,42 @@ import Post from "../../components/post/Post";
 import { useNavigate } from "react-router-dom";
 
 const PostsPage = () => {
-  const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage] = useState(10);
     const { posts, pageCount, loading } = useAppSelector((state) => state.post);
     const dispatch = useAppDispatch();
     const user = useAppSelector((state) => state.user.userInfo);
     const authLoading = useAppSelector((state) => state.user.authLoading);
+    const navigate = useNavigate();
   useEffect(() => {
       dispatch(fetchPosts({ page: 1, perPage: postsPerPage }));
   }, [user, authLoading]);
     useEffect(() => {
         dispatch(fetchPosts({ page: currentPage, perPage: postsPerPage }));
     }, [dispatch, currentPage, postsPerPage]);
+
+    useEffect(() => {
+        // Этот useEffect будет вызываться каждый раз при изменении authLoading.
+        // Если пользователь не залогинен и загрузка статуса аутентификации завершена,
+        // происходит перенаправление на страницу входа.
+        if (!user && !authLoading) {
+            navigate('/login');
+        }
+    }, [user, authLoading, navigate]);
+
+    useEffect(() => {
+        if (user && !authLoading) {
+            dispatch(fetchPosts({ page: currentPage, perPage: postsPerPage }));
+        }
+    }, [dispatch, currentPage, postsPerPage, user, authLoading]);
+
     const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
         setCurrentPage(value);
     };
-    const navigate = useNavigate();
 
-    useEffect(() => {
-        if (!user && !authLoading) {
-            navigate('/login');
-        } else if (user && !authLoading) {
-            dispatch(fetchPosts({ page: currentPage, perPage: postsPerPage }));
-        }
-    }, [user, authLoading, currentPage, postsPerPage, navigate, dispatch]);
-
-  const deleteHandler = (id: number) => {
-    dispatch(deletePost(id));
-  };
+    const deleteHandler = (id: number) => {
+        dispatch(deletePost(id));
+    };
 
     return (
         <Container maxWidth={"sm"}>
