@@ -1,6 +1,5 @@
 import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { RootState } from "../../store";
 import { useEffect } from "react";
 
 import { Box, Container, Paper, Typography } from "@mui/material";
