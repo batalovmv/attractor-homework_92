@@ -1,7 +1,7 @@
-import {Alert, CircularProgress, Container, Snackbar} from "@mui/material";
+import {Alert, Container, Snackbar} from "@mui/material";
 import "./App.css";
 import AppToolbar from "./components/UI/AppToolbar/AppToolbar";
-import { Route,Routes, useNavigate } from "react-router-dom";
+import { Route,Routes } from "react-router-dom";
 import RegisterPage from "./containers/RegisterPage/RegisterPage";
 import PostsPage from "./containers/post/PostsPage";
 import PostDetailsPage from "./containers/post/PostDetailsPage";
@@ -28,33 +28,8 @@ function App() {
     const user = useAppSelector((state) => state.user.userInfo);
     const emailSent = useAppSelector((state) => state.user.emailSent);
     const authLoading = useAppSelector((state) => state.user.authLoading);
-    const navigate = useNavigate();
-    const [isAuthChecked, setIsAuthChecked] = useState(false);
-    useCheckAuthState();
-    const checkAuthStatus = async () => {
-        // Предполагается, что этот метод изменит authLoading на false после проверки
-        await useCheckAuthState();
-    };
-    useEffect(() => {
-        checkAuthStatus();
-    }, []);
-    useEffect(() => {
-        if (authLoading === false) { // Если загрузка завершена
-            setIsAuthChecked(true);  // Обновляем состояние проверки аутентификации
-            if (!user) {
-                navigate('/login'); // Если пользователь не аутентифицирован, перенаправляем на /login
-            }
-        }
-    }, [authLoading, user, navigate]);
-
-    if (!isAuthChecked) {
-        return (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                <CircularProgress />
-            </div>
-        );
-    }
-
+    const authInitialized = useAppSelector((state) => state.user.authInitialized);
+    useCheckAuthState()
     useEffect(() => {
        
     }, [user, authLoading]);
@@ -70,6 +45,10 @@ function App() {
         setOpenSnackbar(false);
     };
     const errorMessage = typeof error === 'string' ? error : error?.message || 'An unknown error occurred';
+    if (authLoading || !authInitialized) {
+        return 123 
+    }
+
     return (
         <>
             <AppToolbar />

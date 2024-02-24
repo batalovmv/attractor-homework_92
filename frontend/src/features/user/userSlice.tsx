@@ -14,6 +14,7 @@ interface userState {
     emailSent: boolean,
     authLoading: boolean,
     error: string | null;
+    authInitialized:boolean
 }
 
 type userRequest = {
@@ -141,6 +142,7 @@ const initialState: userState = {
     loading: false,
     emailSent: false,
     authLoading: true,
+    authInitialized:false,
 };
 
 const userSlice = createSlice({
@@ -156,6 +158,9 @@ const userSlice = createSlice({
         },
         setAuthLoading(state, action) {
             state.authLoading = action.payload;
+        },
+        setAuthInitialized(state, action: PayloadAction<boolean>) {
+            state.authInitialized = action.payload;
         },
     },
     extraReducers: (builder) => {
@@ -183,11 +188,13 @@ const userSlice = createSlice({
             .addCase(loginUser.pending, (state) => {
                 state.loading = true;
                 state.loginError = null;
+                state.authInitialized = false;
             })
             .addCase(loginUser.fulfilled, (state, action) => {
                 state.loading = false;
                 state.loginError = null;
                 state.userInfo = action.payload;
+                state.authInitialized = true;
                 state.authLoading = false
                 saveToLocalStorage('userInfo', state.userInfo);
             })
@@ -195,9 +202,11 @@ const userSlice = createSlice({
                 state.loading = false;
                 const errorMessage = action.payload ? action.payload.message : 'Login failed due to an unknown error';
                 state.loginError = errorMessage;
+                state.authInitialized = true;
             })
             .addCase(logoutUser.fulfilled, (state) => {
                 state.userInfo = null;
+                state.authInitialized = false;
                 removeFromLocalStorage('userInfo');
             })
             .addCase(refreshToken.fulfilled, (state, action: PayloadAction<{ token: string; refreshToken: string }>) => {
@@ -220,14 +229,29 @@ const userSlice = createSlice({
             })
             .addCase(refreshToken.pending, (state) => {
                 state.authLoading = true;
-            });
+            })
+            .addMatcher(
+                // Обработчик для любого экшна, который устанавливает loading в true
+                (action) => action.type.endsWith('/pending'),
+                (state) => {
+                    state.loading = true;
+                }
+            )
+        .addMatcher(
+            // Обработчик для любого экшна, который устанавливает loading в false и authInitialized в true
+            (action) => action.type.endsWith('/fulfilled') || action.type.endsWith('/rejected'),
+            (state) => {
+                state.loading = false;
+                state.authInitialized = true;
+            }
+        );
             
            
     },
 });
 
 export default userSlice;
-
+export const { setAuthInitialized } = userSlice.actions;
 export const userSelect = (state: RootState) => {
     return state.user.userInfo;
 };
