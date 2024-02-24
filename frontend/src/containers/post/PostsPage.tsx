@@ -6,7 +6,7 @@ import Post from "../../components/post/Post";
 import { useNavigate } from "react-router-dom";
 
 const PostsPage = () => {
-  const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage] = useState(10);
     const { posts, pageCount, loading } = useAppSelector((state) => state.post);
     const dispatch = useAppDispatch();
@@ -28,16 +28,14 @@ const PostsPage = () => {
         }
     }, [currentPage, dispatch, authLoading, postsPerPage]);
 
-  const deleteHandler = (id: number) => {
-    dispatch(deletePost(id));
-  };
+    const deleteHandler = (id: number) => {
+        dispatch(deletePost(id));
+    };
 
     return (
         <Container maxWidth={"sm"}>
-            <Typography textAlign={"center"} variant="h4" padding={4}>
-                Posts
-            </Typography>
-            {authLoading || loading ? ( 
+
+            {authLoading || loading ? (
                 <Box
                     display="flex"
                     justifyContent="center"
@@ -46,9 +44,11 @@ const PostsPage = () => {
                 >
                     <CircularProgress />
                 </Box>
-            
+
             ) : (
-                <>
+                <> <Typography textAlign={"center"} variant="h4" padding={4}>
+                    Posts
+                </Typography>
                     {Array.isArray(posts) && posts.map((post) => (
                         <Post
                             key={post.id}
@@ -67,5 +67,5 @@ const PostsPage = () => {
             )}
         </Container>
     );
-                    }
+}
 export default PostsPage;
