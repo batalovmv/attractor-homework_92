@@ -14,7 +14,12 @@ const ProtectedRoute = ({ isAllowed, redirectPath, children }: Props) => {
     if (authLoading) {
         // Центрируем индикатор загрузки на странице
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+            <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                style={{ height: 'calc(100vh - 64px)' }}
+            >
                 <CircularProgress />
             </Box>
         );
