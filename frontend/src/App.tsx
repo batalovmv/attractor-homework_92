@@ -1,7 +1,7 @@
-import {Alert, Container, Snackbar} from "@mui/material";
+import {Alert, CircularProgress, Container, Snackbar} from "@mui/material";
 import "./App.css";
 import AppToolbar from "./components/UI/AppToolbar/AppToolbar";
-import { Route,Routes } from "react-router-dom";
+import { Route,Routes, useNavigate } from "react-router-dom";
 import RegisterPage from "./containers/RegisterPage/RegisterPage";
 import PostsPage from "./containers/post/PostsPage";
 import PostDetailsPage from "./containers/post/PostDetailsPage";
@@ -28,7 +28,27 @@ function App() {
     const user = useAppSelector((state) => state.user.userInfo);
     const emailSent = useAppSelector((state) => state.user.emailSent);
     const authLoading = useAppSelector((state) => state.user.authLoading);
-    useCheckAuthState()
+    const navigate = useNavigate();
+    const [isAuthChecked, setIsAuthChecked] = useState(false);
+    useCheckAuthState();
+
+    useEffect(() => {
+        if (!authLoading) {
+            setIsAuthChecked(true);
+            if (!user) {
+                navigate('/login');
+            }
+        }
+    }, [user, authLoading, navigate]);
+
+    if (!isAuthChecked) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <CircularProgress />
+            </div>
+        );
+    }
+
     useEffect(() => {
        
     }, [user, authLoading]);
