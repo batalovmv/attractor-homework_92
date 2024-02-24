@@ -35,32 +35,38 @@ const PostsPage = () => {
     dispatch(deletePost(id));
   };
 
-  return (
+    return (
         <Container maxWidth={"sm"}>
             <Typography textAlign={"center"} variant="h4" padding={4}>
                 Posts
             </Typography>
-          {!user && (
+            {authLoading ? (
+                
+                <Typography textAlign={"center"}>Загрузка...</Typography>
+            ) : !user ? (
+               
                 <Typography textAlign={"center"} color={"red"}>
-                   Пожалуйста войдите в аккаунт для получения доступа к функционалу
+                    Пожалуйста войдите в аккаунт для получения доступа к функционалу
                 </Typography>
+            ) : (
+                <>
+                    {Array.isArray(posts) && posts.map((post) => (
+                        <Post
+                            key={post.id}
+                            onDelete={() => deleteHandler(post.id)}
+                            post={post}
+                        />
+                    ))}
+                    <Pagination
+                        count={pageCount}
+                        page={currentPage}
+                        onChange={handlePageChange}
+                        color="primary"
+                        shape="rounded"
+                    />
+                </>
             )}
-            {Array.isArray(posts) && posts.map((post) => (
-                <Post
-                    key={post.id}
-                    onDelete={() => deleteHandler(post.id)}
-                    post={post}
-                />
-            ))}
-          <Pagination
-              count={pageCount} 
-              page={currentPage}
-              onChange={handlePageChange} 
-              color="primary"
-              shape="rounded"
-          />
         </Container>
     );
-};
-
+                    }
 export default PostsPage;
