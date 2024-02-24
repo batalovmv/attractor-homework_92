@@ -50,10 +50,41 @@ function App() {
             <main>
                 <Container maxWidth="xl">
                     <Routes>
-                        <Route path="/" element={<PostsPage />} />
-                        <Route path="/posts/:id" element={<PostDetailsPage />} />
                         <Route path="/register" element={<RegisterPage />} />
                         <Route path="/login" element={<LoginPage />} />
+                        <Route
+                            path="/add-post"
+                            element={
+                                <ProtectedRoute
+                                    isAllowed={!!user && !authLoading}
+                                    redirectPath="/login"
+                                >
+                                    <NewPost />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/"
+                            element={
+                                <ProtectedRoute
+                                    isAllowed={!!user && !authLoading}
+                                    redirectPath="/login"
+                                >
+                                    <PostsPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/posts/:id"
+                            element={
+                                <ProtectedRoute
+                                    isAllowed={!!user && !authLoading}
+                                    redirectPath="/login"
+                                >
+                                    <PostDetailsPage />
+                                </ProtectedRoute>
+                            }
+                        />
                         <Route
                             path="/add-post"
                             element={
