@@ -37,7 +37,7 @@ function App() {
             setOpenSnackbar(true);
         }
     }, [error]);
-    const handleCloseSnackbar = (event?: SyntheticEvent | Event, reason?: string) => {
+    const handleCloseSnackbar = (_event?: SyntheticEvent | Event, reason?: string) => {
         if (reason === 'clickaway') {
             return;
         }
