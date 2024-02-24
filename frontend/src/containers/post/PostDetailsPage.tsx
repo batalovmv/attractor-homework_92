@@ -18,9 +18,8 @@ const PostDetailsPage = () => {
     const maxDescriptionLength = 100;
     const { id } = useParams<{ id: string }>();
     const dispatch = useAppDispatch();
-    const {loading } = useAppSelector((state) => state.post);
     const authLoading = useAppSelector((state) => state.user.authLoading);
-    const { post, comments } = useAppSelector(
+    const { post, comments, loading } = useAppSelector(
         (state) => state.postDetails
     );
 
