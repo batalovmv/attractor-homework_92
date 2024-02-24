@@ -10,34 +10,40 @@ const StyledLink = styled(Link)(() => ({
 }));
 
 const AppToolbar = () => {
-  const user = useAppSelector((state) => state.user.userInfo);
-  return (
-    <>
-      <AppBar position="fixed">
-        <Toolbar>
-          <Grid container direction={"row"} justifyContent={"space-between"}>
-            <Typography variant="h6" component={StyledLink} to={"/"}>
-              Forum App
-            </Typography>
-            {user ? (
-              <UserMenu username={user.username} />
-            ) : (
-              <Grid item>
-                <Button component={Link} to={"/register"}>
-                  Register
-                </Button>
-                or
-                <Button component={Link} to={"/login"}>
-                  Login
-                </Button>
-              </Grid>
-            )}
-          </Grid>
-        </Toolbar>
-      </AppBar>
-      <Box component={Toolbar} marginBottom={2} />
-    </>
-  );
+    const user = useAppSelector((state) => state.user.userInfo);
+
+    return (
+        <>
+            <AppBar position="fixed">
+                <Toolbar>
+                    <Grid container direction={"row"} justifyContent={"space-between"} alignItems={"center"}>
+                        <Typography variant="h6" component={StyledLink} to={"/"}>
+                            Forum App
+                        </Typography>
+                        {user ? (
+                            <>
+                                <Button component={StyledLink} to={"/add-post"}>
+                                    Add new post
+                                </Button>
+                                <UserMenu username={user.username} />
+                            </>
+                        ) : (
+                            <Grid item>
+                                <Button component={StyledLink} to={"/register"}>
+                                    Register
+                                </Button>
+                                or
+                                <Button component={StyledLink} to={"/login"}>
+                                    Login
+                                </Button>
+                            </Grid>
+                        )}
+                    </Grid>
+                </Toolbar>
+            </AppBar>
+            <Box component={Toolbar} marginBottom={2} />
+        </>
+    );
 };
 
 export default AppToolbar;

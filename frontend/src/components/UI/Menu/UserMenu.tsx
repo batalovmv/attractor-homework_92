@@ -1,23 +1,14 @@
-import Button from "@mui/material/Button";
+
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import { useAppDispatch } from "../../../store/hooks";
 import { logoutUser } from "../../../features/user/userSlice";
-import styled from "@emotion/styled";
 import { IconButton, Typography } from "@mui/material";
 import { AccountCircle } from "@mui/icons-material";
-
 interface Props {
-  username: string;
+    username: string;
 }
-
-const StyledLink = styled(Link)(() => ({
-  color: "blue",
-  textDecoration: "none",
-  ["&:hover"]: { color: "inherit" },
-}));
 
 export default function UserMenu({ username }: Props) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -33,7 +24,7 @@ export default function UserMenu({ username }: Props) {
     };
 
     const handleLogout = () => {
-        handleClose(); 
+        handleClose();
         dispatch(logoutUser());
     };
 
@@ -62,15 +53,9 @@ export default function UserMenu({ username }: Props) {
                     "aria-labelledby": "basic-button",
                 }}
             >
-                <MenuItem onClick={handleClose}>
-                    <Button component={StyledLink} to={"/add-post"}>
-                        Add new post
-                    </Button>
-                </MenuItem>
+                {/* Здесь убран пункт меню "Add new post", так как кнопка перенесена в AppToolbar */}
                 <MenuItem onClick={handleLogout}>
-                    <Button component={StyledLink} to={"/"}>
-                        Logout
-                    </Button>
+                    Logout
                 </MenuItem>
             </Menu>
         </div>
