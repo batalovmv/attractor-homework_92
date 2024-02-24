@@ -1,4 +1,4 @@
-import { Container, Pagination, Typography } from "@mui/material";
+import { Box, CircularProgress, Container, Pagination, Typography } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useEffect, useState } from "react";
 import { deletePost, fetchPosts } from "../../features/post/postSlice";
@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 const PostsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage] = useState(10);
-    const { posts, pageCount } = useAppSelector((state) => state.post);
+    const { posts, pageCount, loading } = useAppSelector((state) => state.post);
     const dispatch = useAppDispatch();
     const user = useAppSelector((state) => state.user.userInfo);
     const authLoading = useAppSelector((state) => state.user.authLoading);
@@ -33,14 +33,22 @@ const PostsPage = () => {
   };
 
     return (
-        <>
         <Container maxWidth={"sm"}>
+            <Typography textAlign={"center"} variant="h4" padding={4}>
+                Posts
+            </Typography>
+            {authLoading || loading ? ( 
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    style={{ height: 'calc(100vh - 64px)' }}
+                >
+                    <CircularProgress />
+                </Box>
             
-            
-              
-                <Typography textAlign={"center"} variant="h4" padding={4}>
-                    Posts
-                </Typography>
+            ) : (
+                <>
                     {Array.isArray(posts) && posts.map((post) => (
                         <Post
                             key={post.id}
@@ -55,9 +63,9 @@ const PostsPage = () => {
                         color="primary"
                         shape="rounded"
                     />
-                
+                </>
+            )}
         </Container>
-        </>
     );
                     }
 export default PostsPage;
