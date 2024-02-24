@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useAppDispatch } from "../../../store/hooks";
-import  {  loginUser, logoutUser } from "../../../features/user/userSlice";
+import  {  loginUser, logoutUser, setAuthLoading } from "../../../features/user/userSlice";
 import { JwtPayload, jwtDecode } from "jwt-decode";
 
 const useCheckAuthState = () => {
@@ -36,14 +36,18 @@ const useCheckAuthState = () => {
                     } catch (error) {
                         console.error('Token decode failed:', error);
                         dispatch(logoutUser());
+                        dispatch(setAuthLoading(false));
+                        
                         console.error('Error during token refresh or user login:', error);
                     }
                 } else {
                     console.error('Token decode failed 2:');
+                    dispatch(setAuthLoading(false));
                     dispatch(logoutUser());
                 }
             } else {
                 console.error('Token decode failed 3:');
+                dispatch(setAuthLoading(false));
                 dispatch(logoutUser());
             }
         }

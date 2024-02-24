@@ -227,7 +227,7 @@ const userSlice = createSlice({
 });
 
 export default userSlice;
-
+export const { setUserInfo, logout, setAuthLoading } = userSlice.actions;
 export const userSelect = (state: RootState) => {
     return state.user.userInfo;
 };
