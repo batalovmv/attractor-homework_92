@@ -11,7 +11,7 @@ export class Post {
   @Column()
   title!: string;
 
-  @Column({ nullable: true })
+  @Column('text', { nullable: true })
   description?: string;
 
   @Column({ nullable: true })

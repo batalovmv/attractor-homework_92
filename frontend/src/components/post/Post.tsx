@@ -1,21 +1,18 @@
 import {
   Box,
   Card,
-  CardActions,
   CardContent,
   CardMedia,
   IconButton,
   Typography,
-  styled,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import { Comment as CommentIcon } from '@mui/icons-material';
+import {  CommentOutlined, DeleteOutline, ThumbUpAltOutlined } from '@mui/icons-material';
 import { IPost } from "../../interfaces/IPost";
 import moment from "moment";
 import { apiURL } from "../../constants";
 import { Link } from "react-router-dom";
-import { DeleteForever, ThumbUpAlt } from "@mui/icons-material";
 import { MouseEventHandler, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { RootState } from "../../store";
@@ -26,11 +23,7 @@ interface Props {
     onDelete: MouseEventHandler<HTMLButtonElement>;
 }
 
-const StyledLink = styled(Link)(() => ({
-    color: "pink",
-    textDecoration: "none",
-    ["&:hover"]: { color: "inherit" },
-}));
+
 
 const Post = ({ post, onDelete }: Props) => {
     const theme = useTheme();
@@ -64,56 +57,64 @@ const Post = ({ post, onDelete }: Props) => {
     return (
         <Box mb={4} sx={{ width: '100%' }}>
             <Card elevation={1}>
-                <Box display={isMobile ? "block" : "flex"} alignItems="start" gap={isMobile ? 0 : 1}>
+                <Box position="relative">
                     {cardImage && (
                         <CardMedia
-                            sx={{ height: isMobile ? 140 : 200, width: isMobile ? '100%' : 200 }}
+                            sx={{ height: isMobile ? 140 : 200, width: '100%' }}
                             component="img"
                             alt="post image"
                             src={cardImage}
                         />
                     )}
-                    <CardContent sx={{ flex: 1 }}>
-                        <Typography variant="subtitle1" color="textSecondary">
-                            {formattedDate}
-                        </Typography>
-                        <Typography variant="body2">{`by ${post.user.username}`}</Typography>
-                        <Typography
-                            variant="h6"
-                            component={StyledLink}
-                            to={`/posts/${post.id}`}
-                            sx={{ mt: 2, mb: 2 }}
+                    {currentUser && currentUser === post.user.username && (
+                        <IconButton
+                            onClick={onDelete}
+                            sx={{
+                                position: 'absolute',
+                                top: 0,
+                                right: 0,
+                                color: theme.palette.grey[500],
+                                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                                '&:hover': {
+                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                }
+                            }}
+                            size="large"
                         >
+                            <DeleteOutline />
+                        </IconButton>
+                    )}
+                </Box>
+                <CardContent>
+                    <Typography variant="subtitle1" color="textSecondary">
+                        {formattedDate}
+                    </Typography>
+                    <Typography variant="body2">{`by ${post.user.username}`}</Typography>
+                    <Link to={`/posts/${post.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Typography variant="h6" component="h2" sx={{ mt: 2, mb: 2 }}>
                             {post.title}
                         </Typography>
-                        <Box display="flex" alignItems="center" mb={2}>
-                            <IconButton
-                                onClick={handleLikeClick}
-                                sx={{ color: currentUserLiked ? 'red' : 'inherit' }}
-                                disabled={loading}
-                                size="large"
-                            >
-                                <ThumbUpAlt />
-                            </IconButton>
-                            <Typography variant="body2" sx={{ mr: 2 }}>
-                                {likeCount} Likes
-                            </Typography>
-                            <StyledLink to={`/posts/${post.id}`}>
-                                <CommentIcon sx={{ cursor: 'pointer', mr: 1 }} />
-                            </StyledLink>
+                    </Link>
+                    <Box display="flex" alignItems="center" mb={2}>
+                        <IconButton
+                            onClick={handleLikeClick}
+                            sx={{ color: currentUserLiked ? theme.palette.primary.main : 'inherit' }}
+                            disabled={loading}
+                            size="large"
+                        >
+                            <ThumbUpAltOutlined />
+                        </IconButton>
+                        <Typography variant="body2" sx={{ mr: 2 }}>
+                            {likeCount} Likes
+                        </Typography>
+                        <Link to={`/posts/${post.id}`} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+                            <CommentOutlined sx={{ mr: 1 }} />
                             <Typography variant="body2">
                                 {post.commentCount} Comments
                             </Typography>
-                        </Box>
-                        {currentUser && currentUser === post.user.username && (
-                            <CardActions disableSpacing>
-                                <IconButton onClick={onDelete}>
-                                    <DeleteForever />
-                                </IconButton>
-                            </CardActions>
-                        )}
-                    </CardContent>
-                </Box>
+                        </Link>
+                    </Box>
+                </CardContent>
             </Card>
         </Box>
     );
