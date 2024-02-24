@@ -1,9 +1,11 @@
 import {
   Box,
+  Button,
   Card,
   CardContent,
   CardMedia,
   IconButton,
+  Modal,
   Typography,
   useMediaQuery,
   useTheme,
@@ -31,6 +33,7 @@ const Post = ({ post, onDelete }: Props) => {
     const dispatch = useAppDispatch();
     const { loading } = useAppSelector((state: RootState) => state.likes);
     const [likeCount, setLikeCount] = useState(post.likeCount);
+    const [modalOpen, setModalOpen] = useState(false);
     const [currentUserLiked, setCurrentUserLiked] = useState(post.currentUserLiked);
     let cardImage: string | undefined = undefined;
     const currentUser = useAppSelector(
@@ -53,6 +56,19 @@ const Post = ({ post, onDelete }: Props) => {
             setCurrentUserLiked(true); // устанавливаем, что пользователь лайкнул
         }
     };
+    const handleDeleteClick = () => {
+        setModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setModalOpen(false);
+    };
+
+    const handleConfirmDelete = (event: React.MouseEvent<HTMLButtonElement>) => {
+        onDelete(event);
+        setModalOpen(false);
+    };
+
     const formattedDate = moment(post.datetime).format("LLL");
     return (
         <Box mb={4} sx={{ width: '100%' }}>
@@ -68,15 +84,15 @@ const Post = ({ post, onDelete }: Props) => {
                     )}
                     {currentUser && currentUser === post.user.username && (
                         <IconButton
-                            onClick={onDelete}
+                            onClick={handleDeleteClick}
                             sx={{
                                 position: 'absolute',
-                                top: 0,
-                                right: 0,
-                                color: theme.palette.grey[500],
-                                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                                top: 8,
+                                right: 8,
+                                color: 'white',
+                                backgroundColor: theme.palette.grey[800],
                                 '&:hover': {
-                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                    backgroundColor: theme.palette.grey[700],
                                 }
                             }}
                             size="large"
@@ -115,6 +131,39 @@ const Post = ({ post, onDelete }: Props) => {
                         </Link>
                     </Box>
                 </CardContent>
+                <Modal
+                    open={modalOpen}
+                    onClose={handleCloseModal}
+                    aria-labelledby="delete-confirmation-modal"
+                    aria-describedby="confirm-delete-post"
+                >
+                    <Box sx={{
+                        position: 'absolute' as 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: 400,
+                        bgcolor: 'background.paper',
+                        boxShadow: 24,
+                        p: 4,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2,
+                        borderRadius: 1
+                    }}>
+                        <Typography id="delete-confirmation-modal" variant="h6" component="h2">
+                            Are you sure you want to delete this post?
+                        </Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                            <Button onClick={handleCloseModal} color="secondary">
+                                Cancel
+                            </Button>
+                            <Button onClick={handleConfirmDelete} color="error">
+                                Delete
+                            </Button>
+                        </Box>
+                    </Box>
+                </Modal>
             </Card>
         </Box>
     );
