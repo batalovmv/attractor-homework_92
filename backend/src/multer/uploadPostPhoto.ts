@@ -34,8 +34,8 @@ export class MulterUpload implements ExpressMiddlewareInterface {
 
             // Использование sharp для изменения размера и сжатия изображения
             sharp(request.file.buffer)
-                .resize(1024)
-                .jpeg({ quality: 50 })
+                .resize(200)
+                .jpeg({ quality: 30 })
                 .toFile(savePath, (err: any) => {
                     if (err) {
                         return next(err);
