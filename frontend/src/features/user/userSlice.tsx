@@ -12,6 +12,7 @@ interface userState {
     loginError: null | string;
     emailSent: boolean,
     authLoading: boolean,
+    error: string | null;
 }
 
 type userRequest = {
@@ -134,6 +135,7 @@ export const logoutUser = createAsyncThunk("auth.logout", async (_, { dispatch }
 
 
 const initialState: userState = {
+    error: null,
     userInfo: null,
     registerError: null,
     loginError: null,

@@ -19,7 +19,7 @@ const PostDetailsPage = () => {
     const { id } = useParams<{ id: string }>();
     const dispatch = useAppDispatch();
 
-    const { post, error, comments } = useAppSelector(
+    const { post, comments } = useAppSelector(
         (state) => state.postDetails
     );
 
@@ -58,13 +58,8 @@ const PostDetailsPage = () => {
 
     return (
         <Container maxWidth="sm">
-            {error && (
-                <Typography variant="h6" textAlign="center" color="error">
-                    {error.message}
-                </Typography>
-            )}
             {post && (
-                <Paper elevation={3} sx={{ p: 2, my: 2 }}>
+                <Paper elevation={3} sx={{ p: 2, my: 2, position: 'relative' }}>
                     <Typography variant="h4" textAlign="center" gutterBottom>
                         {post.title}
                     </Typography>
@@ -76,7 +71,7 @@ const PostDetailsPage = () => {
                             </Button>
                         )}
                     </Typography>
-                    <Typography variant="subtitle1" sx={{ position: 'absolute', bottom: 0, right: 0, p: 2 }} color="text.secondary">
+                    <Typography variant="subtitle1" sx={{ mt: 2 }} color="text.secondary">
                         {renderDate(post.datetime)} by {post.user.username}
                     </Typography>
                 </Paper>
