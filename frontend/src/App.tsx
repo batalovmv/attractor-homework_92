@@ -1,7 +1,7 @@
 import {Alert, Container, Snackbar} from "@mui/material";
 import "./App.css";
 import AppToolbar from "./components/UI/AppToolbar/AppToolbar";
-import { Navigate, Route,Routes } from "react-router-dom";
+import { Route,Routes } from "react-router-dom";
 import RegisterPage from "./containers/RegisterPage/RegisterPage";
 import PostsPage from "./containers/post/PostsPage";
 import PostDetailsPage from "./containers/post/PostDetailsPage";
@@ -28,7 +28,6 @@ function App() {
     const user = useAppSelector((state) => state.user.userInfo);
     const emailSent = useAppSelector((state) => state.user.emailSent);
     const authLoading = useAppSelector((state) => state.user.authLoading);
-    const isAuthenticated = !!user && !authLoading;
     useCheckAuthState()
     useEffect(() => {
        
@@ -51,35 +50,21 @@ function App() {
             <main>
                 <Container maxWidth="xl">
                     <Routes>
+                        <Route path="/" element={<PostsPage />} />
+                        <Route path="/posts/:id" element={<PostDetailsPage />} />
                         <Route path="/register" element={<RegisterPage />} />
                         <Route path="/login" element={<LoginPage />} />
-                        {/* Защищенные маршруты */}
-                        <Route
-                            path="/"
-                            element={
-                                <ProtectedRoute isAllowed={isAuthenticated} redirectPath="/login">
-                                    <PostsPage />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route
-                            path="/posts/:id"
-                            element={
-                                <ProtectedRoute isAllowed={isAuthenticated} redirectPath="/login">
-                                    <PostDetailsPage />
-                                </ProtectedRoute>
-                            }
-                        />
                         <Route
                             path="/add-post"
                             element={
-                                <ProtectedRoute isAllowed={isAuthenticated} redirectPath="/login">
+                                <ProtectedRoute
+                                    isAllowed={!!user && !authLoading}
+                                    redirectPath="/login"
+                                >
                                     <NewPost />
                                 </ProtectedRoute>
                             }
                         />
-                        {/* Редирект несуществующих адресов на главную (или другую страницу по вашему выбору) */}
-                        <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </Container>
             </main>
