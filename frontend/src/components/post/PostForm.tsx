@@ -1,5 +1,5 @@
 import { useState, ChangeEvent, FormEvent } from "react";
-import { Alert, Box, Button, Grid, TextField } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Grid, TextField } from "@mui/material";
 import FileInput from "../Form/FileInput";
 
 interface State {
@@ -20,18 +20,17 @@ const ProductForm = (props: Props) => {
     image: "",
     error: undefined,
   });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const submitFormHandler = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
 
-  const submitFormHandler = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-		if (!state.title) {
-      setState((prevState) => ({
-        ...prevState,
-        error: "Title cannot be empty!",
-      }));
-
-      return;
-    }
+        if (!state.title) {
+            setState((prevState) => ({
+                ...prevState,
+                error: "Title cannot be empty!",
+            }));
+            return;
+        }
 
 
     if (!state.description.trim() && !state.image) {
@@ -42,7 +41,18 @@ const ProductForm = (props: Props) => {
 
       return;
     }
+        setIsSubmitting(true); // Начало отправки данных
+        try {
+            const formData = new FormData();
 
+            Object.entries(state).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+
+            await props.onSubmit(formData); // Ожидаем выполнение функции onSubmit
+        } finally {
+            setIsSubmitting(false); // Завершение отправки данных
+        }
     const formData = new FormData();
 
     Object.entries(state).forEach(([key, value]) => {
@@ -70,12 +80,12 @@ const ProductForm = (props: Props) => {
   };
 
   return (
-    <Box
-      component={"form"}
-      autoComplete="off"
-      onSubmit={submitFormHandler}
-      paddingY={2}
-    >
+      <Box
+          component={"form"}
+          autoComplete="off"
+          onSubmit={submitFormHandler}
+          paddingY={2}
+      >
       <Grid container direction="column" spacing={2}>
         <Grid item xs>
 				{state.error ? (
@@ -113,9 +123,14 @@ const ProductForm = (props: Props) => {
         </Grid>
 
         <Grid item xs>
-          <Button type="submit" color="primary" variant="contained">
-            Create Post
-          </Button>
+                  <Button
+                      type="submit"
+                      color="primary"
+                      variant="contained"
+                      disabled={isSubmitting}
+                  >
+                      {isSubmitting ? <CircularProgress size={24} /> : 'Create Post'}
+                  </Button>
         </Grid>
       </Grid>
     </Box>
