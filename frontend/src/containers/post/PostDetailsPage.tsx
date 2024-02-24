@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { useEffect, useState } from "react";
 
-import { Box, Button, Container, Paper, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Container, Paper, Typography } from "@mui/material";
 import {
   createComment,
   deleteComment,
@@ -18,7 +18,8 @@ const PostDetailsPage = () => {
     const maxDescriptionLength = 100;
     const { id } = useParams<{ id: string }>();
     const dispatch = useAppDispatch();
-
+    const {loading } = useAppSelector((state) => state.post);
+    const authLoading = useAppSelector((state) => state.user.authLoading);
     const { post, comments } = useAppSelector(
         (state) => state.postDetails
     );
@@ -58,6 +59,18 @@ const PostDetailsPage = () => {
 
     return (
         <Container maxWidth="sm">
+            {authLoading || loading ? (
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    style={{ height: 'calc(100vh - 64px)' }}
+                >
+                    <CircularProgress />
+                </Box>
+
+            ) : (
+                <>
             {post && (
                 <Paper elevation={3} sx={{ p: 2, my: 2, position: 'relative' }}>
                     <Typography variant="h4" textAlign="center" gutterBottom>
@@ -92,6 +105,8 @@ const PostDetailsPage = () => {
                     <CommentForm onSubmit={submitComment} />
                 </Box>
             )}
+                    </>
+             )}
         </Container>
     );
 };
