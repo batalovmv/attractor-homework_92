@@ -32,7 +32,8 @@ services:
       - MYSQL_PASSWORD=qwerty123
       - MYSQL_DB=test
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
        
 
   mysql:
