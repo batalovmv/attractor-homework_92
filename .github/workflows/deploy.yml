@@ -47,7 +47,7 @@ jobs:
             docker-compose down --rmi all -v
 
             # Очищаем неиспользуемые объекты Docker
-            #  docker system prune -af --volumes
+             docker system prune -af --volumes
 
             # Собираем и запускаем контейнеры с помощью Docker Compose
             docker-compose up -d --build
