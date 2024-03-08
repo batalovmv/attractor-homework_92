@@ -39,6 +39,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=qwerty123
       - MYSQL_DATABASE=test
+      - MYSQL_ROOT_HOST=%
     networks:
       - some-network  
     volumes:
