@@ -4,6 +4,7 @@ FROM node:latest
 WORKDIR /app
 
 # Обновляем список пакетов и устанавливаем клиент MySQL
+RUN apt-get clean && apt-get autoclean && apt-get autoremove --yes && dpkg --configure -a
 RUN apt-get update && apt-get install -y --no-install-recommends default-mysql-client && rm -rf /var/lib/apt/lists/*
 
 # Копируем файлы package.json и устанавливаем зависимости
