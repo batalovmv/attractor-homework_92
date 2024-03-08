@@ -15,6 +15,7 @@ const AppToolbar = () => {
     return (
         <>
             <AppBar position="fixed">
+                <Box sx={{ maxWidth: '960px', margin: '0 auto', width: '100%' }}>
                 <Toolbar>
                     <Grid container direction={"row"} justifyContent={"space-between"} alignItems={"center"}>
                         <Typography variant="h6" component={StyledLink} to={"/"}>
@@ -40,6 +41,7 @@ const AppToolbar = () => {
                         )}
                     </Grid>
                 </Toolbar>
+            </Box>
             </AppBar>
             <Box component={Toolbar} marginBottom={2} />
         </>

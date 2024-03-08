@@ -78,6 +78,7 @@ const ProductForm = (props: Props) => {
   };
 
   return (
+      <Box display="flex" justifyContent="center" paddingY={2}>
       <Box
           component={"form"}
           autoComplete="off"
@@ -132,6 +133,7 @@ const ProductForm = (props: Props) => {
         </Grid>
       </Grid>
     </Box>
+ </Box>
   );
 };
 
