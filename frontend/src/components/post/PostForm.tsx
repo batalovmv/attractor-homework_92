@@ -27,40 +27,38 @@ const ProductForm = (props: Props) => {
         if (!state.title) {
             setState((prevState) => ({
                 ...prevState,
-                error: "Title cannot be empty!",
+                error: "Заголовок не может быть пустым!",
             }));
             return;
         }
 
+        if (!state.description.trim() && !state.image) {
+            setState((prevState) => ({
+                ...prevState,
+                error: "Вы должны заполнить одно из полей: описание или изображение",
+            }));
+            return;
+        }
 
-    if (!state.description.trim() && !state.image) {
-      setState((prevState) => ({
-        ...prevState,
-        error: "You must fill in one of the fields: description or image",
-      }));
+        setIsSubmitting(true); 
 
-      return;
-    }
-        setIsSubmitting(true); // Начало отправки данных
         try {
             const formData = new FormData();
-
             Object.entries(state).forEach(([key, value]) => {
-                formData.append(key, value);
+                formData.append(key, value instanceof File ? value : String(value));
             });
 
-            await props.onSubmit(formData); // Ожидаем выполнение функции onSubmit
+            await props.onSubmit(formData); 
+        } catch (error) {
+            
+            setState((prevState) => ({
+                ...prevState,
+                error: "Произошла ошибка во время отправки формы.",
+            }));
         } finally {
-            setIsSubmitting(false); // Завершение отправки данных
+            setIsSubmitting(false); // Завершение процесса отправки
         }
-    const formData = new FormData();
-
-    Object.entries(state).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
-
-    props.onSubmit(formData);
-  };
+    };
 
   const inputChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
