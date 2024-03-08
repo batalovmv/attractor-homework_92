@@ -44,3 +44,6 @@ jobs:
 
             # Собираем и запускаем контейнеры с помощью Docker Compose
             docker-compose up -d --build
+
+            # Пересоздаём и запускаем контейнеры с помощью Docker Compose
+            docker-compose up -d --build --force-recreate
