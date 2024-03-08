@@ -199,7 +199,7 @@ export class UserController {
 
     @Get('/confirm/:token')
     @HttpCode(200)
-    @Redirect(`http://${process.env.FRONT_ID}:81/postsite/login`)
+    @Redirect(`http://${process.env.FRONT_ID}:81/login`)
     async confirm(@Param('token') token: string) {
         const user = await UserRepository.findOne({ where: { token: token } });
 
