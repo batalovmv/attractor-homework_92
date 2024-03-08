@@ -196,7 +196,6 @@ export class UserController {
             throw new UnauthorizedError("Невалидный refresh token");
         }
     }
-
     @Get('/confirm/:token')
     @HttpCode(200)
     @Redirect(`http://${process.env.FRONT_ID}:81/login`)
