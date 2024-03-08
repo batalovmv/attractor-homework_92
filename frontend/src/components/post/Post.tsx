@@ -34,6 +34,7 @@ const Post = ({ post, onDelete }: Props) => {
     const { loading } = useAppSelector((state: RootState) => state.likes);
     const [likeCount, setLikeCount] = useState(post.likeCount);
     const [modalOpen, setModalOpen] = useState(false);
+    const [isLikeInProgress, setIsLikeInProgress] = useState(false);
     const [currentUserLiked, setCurrentUserLiked] = useState(post.currentUserLiked);
     let cardImage: string | undefined = undefined;
     const currentUser = useAppSelector(
@@ -44,16 +45,23 @@ const Post = ({ post, onDelete }: Props) => {
         cardImage = apiURL + "/uploads/post_photos/" + post.image;
     }
     const handleLikeClick = async () => {
-        if (loading) return;
+        if (isLikeInProgress) return;
 
-        if (currentUserLiked) {
-            await dispatch(unlikePost(post.id));
-            setLikeCount(likeCount - 1); // уменьшаем количество лайков
-            setCurrentUserLiked(false); // устанавливаем, что пользователь больше не лайкнул
-        } else {
-            await dispatch(likePost(post.id));
-            setLikeCount(likeCount + 1); // увеличиваем количество лайков
-            setCurrentUserLiked(true); // устанавливаем, что пользователь лайкнул
+        setIsLikeInProgress(true);
+        try {
+            if (currentUserLiked) {
+                await dispatch(unlikePost(post.id));
+                setLikeCount(likeCount - 1);
+                setCurrentUserLiked(false);
+            } else {
+                await dispatch(likePost(post.id));
+                setLikeCount(likeCount + 1);
+                setCurrentUserLiked(true);
+            }
+        } catch (error) {
+            
+        } finally {
+            setIsLikeInProgress(false);
         }
     };
     const handleDeleteClick = () => {
