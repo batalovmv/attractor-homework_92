@@ -39,5 +39,8 @@ jobs:
             # Останавливаем и удаляем старые контейнеры, сети, тома и образы, связанные с проектом
             docker-compose down --rmi all -v
 
+            # Очищаем неиспользуемые объекты Docker
+            docker system prune -af --volumes
+
             # Собираем и запускаем контейнеры с помощью Docker Compose
             docker-compose up -d --build
