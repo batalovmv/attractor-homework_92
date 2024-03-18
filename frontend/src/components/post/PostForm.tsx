@@ -1,5 +1,5 @@
 import { useState, ChangeEvent, FormEvent } from "react";
-import { Alert, Box, Button, CircularProgress, Grid, TextField } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Grid, TextField,Container } from "@mui/material";
 import FileInput from "../Form/FileInput";
 
 interface State {
@@ -78,14 +78,16 @@ const ProductForm = (props: Props) => {
   };
 
   return (
+      <Container maxWidth="lg" style={{ marginTop: '16px', marginBottom: '16px' }}> 
       <Box display="flex" justifyContent="center" paddingY={2}>
       <Box
           component={"form"}
           autoComplete="off"
           onSubmit={submitFormHandler}
           paddingY={2}
+          sx={{ maxWidth: 1200, margin: 'auto' }}
       >
-      <Grid container direction="column" spacing={2}>
+                  <Grid container direction="column" spacing={2}>
         <Grid item xs>
 				{state.error ? (
           <Alert sx={{ width: "100%", m: 2 }} severity="error">
@@ -134,6 +136,7 @@ const ProductForm = (props: Props) => {
       </Grid>
     </Box>
  </Box>
+      </Container>
   );
 };
 
